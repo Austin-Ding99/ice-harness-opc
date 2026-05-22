@@ -1,0 +1,18 @@
+.DS_Store
+Thumbs.db
+
+# Local/demo data that may contain experimental records.
+data.csv
+*.csv
+*.tsv
+*.xlsx
+*.xls
+
+# Generated reports and local backups.
+*.pptx
+PPT_Config_Backup.txt
+
+# Editor and OS noise.
+.idea/
+.vscode/
+*.log
