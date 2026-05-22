@@ -4,6 +4,7 @@ Thumbs.db
 # Local/demo data that may contain experimental records.
 data.csv
 *.csv
+!refrigerator_demo.csv
 *.tsv
 *.xlsx
 *.xls

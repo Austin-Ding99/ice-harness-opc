@@ -184,6 +184,37 @@
         .code-modal-header button { padding:3px 8px; }
         .code-modal pre { margin:0; padding:14px; overflow:auto; white-space:pre-wrap; font-size:0.78rem; line-height:1.55; font-family:'Consolas','Monaco',monospace; }
         .agent-name[data-code-ref]::after { content:' ⌘'; opacity:0.55; font-size:0.72em; }
+        .demo-onboarding { display:grid; grid-template-columns: minmax(230px, 0.85fr) minmax(320px, 1.35fr) minmax(240px, 0.9fr); gap:10px; padding:10px 12px; border-bottom:1px solid var(--border); background:linear-gradient(135deg, rgba(88,166,255,0.12), rgba(63,185,80,0.08) 48%, rgba(210,153,34,0.10)); flex-shrink:0; }
+        .demo-card { background:var(--panel-bg); border:1px solid var(--border); border-radius:10px; padding:10px 12px; box-shadow:0 6px 18px rgba(0,0,0,0.08); }
+        .demo-card-title { color:var(--accent-blue); font-size:0.82rem; font-weight:800; margin-bottom:6px; display:flex; justify-content:space-between; gap:8px; align-items:center; }
+        .demo-card p { margin:0; color:var(--text-muted); font-size:0.76rem; line-height:1.45; }
+        .demo-primary-row { display:flex; gap:8px; align-items:center; margin-top:9px; flex-wrap:wrap; }
+        .demo-primary-btn { background:linear-gradient(135deg, #238636, #1f6feb); color:#fff; border:0; box-shadow:0 6px 16px rgba(31,111,235,0.24); }
+        .demo-primary-btn:disabled { opacity:0.6; }
+        .demo-chip-row { display:flex; gap:7px; flex-wrap:wrap; }
+        .demo-chip { font-family:'Consolas','Monaco',monospace; font-size:0.75rem; color:var(--accent-blue); border-color:rgba(88,166,255,0.42); background:var(--panel-strong); padding:6px 9px; }
+        .demo-steps { display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap:6px; }
+        .demo-step { border:1px solid var(--border); border-radius:8px; padding:7px 8px; background:var(--panel-strong); min-height:42px; }
+        .demo-step b { display:block; color:var(--accent-yellow); font-size:0.72rem; margin-bottom:3px; }
+        .demo-step span { display:block; color:var(--text-muted); font-size:0.7rem; line-height:1.25; }
+        .onboarding-toast { display:none; position:fixed; top:76px; left:50%; transform:translateX(-50%); width:min(560px, calc(100vw - 28px)); z-index:2500; background:var(--tooltip-bg); color:var(--text-main); border:1px solid var(--accent-blue); border-radius:12px; box-shadow:0 14px 42px var(--toolbar-shadow); padding:12px 14px; backdrop-filter:blur(8px); }
+        .onboarding-toast.active { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+        .onboarding-toast strong { color:var(--accent-blue); display:block; margin-bottom:4px; }
+        .onboarding-toast span { color:var(--text-muted); font-size:0.82rem; line-height:1.45; }
+        .onboarding-toast button { padding:4px 8px; flex-shrink:0; }
+        .empty-demo-state { display:none; position:absolute; inset:18px; z-index:6; pointer-events:none; align-items:center; justify-content:center; text-align:center; border:1px dashed rgba(88,166,255,0.46); border-radius:12px; background:linear-gradient(135deg, rgba(88,166,255,0.09), rgba(63,185,80,0.06)); color:var(--text-muted); }
+        body.no-data .empty-demo-state { display:flex; }
+        .empty-demo-state strong { color:var(--accent-blue); display:block; margin-bottom:6px; font-size:1rem; }
+        .empty-demo-state span { display:block; font-size:0.82rem; }
+        @media (max-width: 1180px) {
+            .demo-onboarding { grid-template-columns:1fr; }
+            .demo-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (max-width: 720px) {
+            body { overflow:auto; height:auto; min-height:100vh; }
+            .demo-steps { grid-template-columns:1fr; }
+            .main-content { min-height:620px; }
+        }
     </style>
 </head>
 <body>
@@ -204,6 +235,7 @@
             <option value="100" selected>5x</option>
             <option value="20">25x</option>
         </select>
+        <button id="btnDemoHeader" class="demo-primary-btn" onclick="window.loadDemoData()">立即体验 Demo</button>
         <button id="btnUpload" onclick="document.getElementById('csvFileInput').click()" style="border-color: var(--accent-blue); color: var(--accent-blue);">📂</button>
         <button id="btnStart" class="primary" onclick="handleAction('开始监控', 'CMD_START')" disabled>▶ 开始</button>
         <button id="btnTestPause" onclick="handleAction('暂停/继续试验', 'CMD_PAUSE')" disabled>⏸ 暂停</button>
@@ -227,6 +259,36 @@
     </div>
 </div>
 
+<section class="demo-onboarding" id="demoOnboarding" aria-label="首次体验 Demo 引导">
+    <div class="demo-card">
+        <div class="demo-card-title"><span>首次体验</span><span id="demoLoadBadge">约 1 分钟跑通</span></div>
+        <p>新同事第一次打开页面时，直接点击按钮加载内置制冷样例数据，并自动渲染默认通道。</p>
+        <div class="demo-primary-row">
+            <button id="btnDemoHero" class="demo-primary-btn" onclick="window.loadDemoData()">立即体验 Demo</button>
+            <button onclick="window.open('cloud_sheet.html', '_blank')">打开 cloud_sheet.html</button>
+        </div>
+    </div>
+    <div class="demo-card">
+        <div class="demo-card-title"><span>示例 Prompt</span><span>点击直接运行</span></div>
+        <div class="demo-chip-row">
+            <button class="demo-chip" onclick="window.runExamplePrompt('cut the data above 150')">cut the data above 150</button>
+            <button class="demo-chip" onclick="window.runExamplePrompt('hide bad channels')">hide bad channels</button>
+            <button class="demo-chip" onclick="window.runExamplePrompt('show ice membrane temperature')">show ice membrane temperature</button>
+        </div>
+        <p style="margin-top:8px;">未配置 DeepSeek API Key 时，这三条 demo 指令会走本地兜底逻辑；配置 Key 后仍保留原有 NL2Action 路由。</p>
+    </div>
+    <div class="demo-card">
+        <div class="demo-card-title"><span>Demo 引导</span><span>5 步闭环</span></div>
+        <div class="demo-steps">
+            <div class="demo-step"><b>Step1</b><span>上传/加载 demo 数据</span></div>
+            <div class="demo-step"><b>Step2</b><span>选择通道</span></div>
+            <div class="demo-step"><b>Step3</b><span>输入自然语言控制</span></div>
+            <div class="demo-step"><b>Step4</b><span>打开 cloud_sheet.html</span></div>
+            <div class="demo-step"><b>Step5</b><span>导出 PPTX</span></div>
+        </div>
+    </div>
+</section>
+
 <div class="main-content">
     <div class="sidebar">
         <div class="sidebar-header">通道控制矩阵</div>
@@ -247,6 +309,12 @@
         <div class="chart-container" id="chartArea">
             <div id="tempChartContainer"><canvas id="liveChart"></canvas></div>
             <div id="powerChartContainer"><canvas id="powerChart"></canvas></div>
+            <div class="empty-demo-state" id="emptyDemoState">
+                <div>
+                    <strong>还没有加载实验数据</strong>
+                    <span>点击上方「立即体验 Demo」，系统会自动读取 refrigerator_demo.csv 并初始化默认通道。</span>
+                </div>
+            </div>
             <div id="selectionOverlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; cursor:crosshair; z-index:10;">
                 <div id="selectionBox" style="position:absolute; top:0; height:100%; background:rgba(88,166,255,0.3); border:1px solid #58a6ff; display:none; pointer-events:none;"></div>
             </div>
@@ -271,6 +339,14 @@
         <button onclick="window.closeCodeInspector()">关闭</button>
     </div>
     <pre id="codeInspectorBody"></pre>
+</div>
+
+<div id="onboardingToast" class="onboarding-toast" role="status" aria-live="polite">
+    <div>
+        <strong>首次打开建议先跑 Demo</strong>
+        <span>当前还没有加载数据。点击「立即体验 Demo」即可自动读取 refrigerator_demo.csv、显示默认通道，并进入可演示状态。</span>
+    </div>
+    <button onclick="window.dismissOnboardingToast()">知道了</button>
 </div>
 
 <script>
@@ -316,9 +392,161 @@
     window.isAutoScroll = true; 
     window.currentWindowSize = 60;
     window.globalViewMode = 'full'; // full=左边界锁定初始时刻，右边界随数据增长；window=局部缩放/平移窗口。
+    window.DEMO_CSV_PATH = 'refrigerator_demo.csv';
 
     window.setBtnSafe = function(id, isDisabled) { const el = document.getElementById(id); if (el) el.disabled = isDisabled; };
     window.saveApiKey = function(val) { if(val) localStorage.setItem('opc_api_key', val); };
+
+    window.updateOnboardingState = function() {
+        const hasData = Array.isArray(window.rawData) && window.rawData.length > 0;
+        document.body.classList.toggle('no-data', !hasData);
+        const badge = document.getElementById('demoLoadBadge');
+        if (badge) badge.innerText = hasData ? `${window.rawData.length} 行已就绪` : '约 1 分钟跑通';
+    };
+
+    window.dismissOnboardingToast = function() {
+        const toast = document.getElementById('onboardingToast');
+        if (toast) toast.classList.remove('active');
+        try { sessionStorage.setItem('opc_demo_onboarding_seen', '1'); } catch (err) {}
+    };
+
+    window.showInitialOnboarding = function() {
+        window.updateOnboardingState();
+        if (window.rawData?.length) return;
+        let seen = false;
+        try { seen = sessionStorage.getItem('opc_demo_onboarding_seen') === '1'; } catch (err) {}
+        if (!seen) {
+            const toast = document.getElementById('onboardingToast');
+            if (toast) toast.classList.add('active');
+        }
+        const status = document.getElementById('dataStatus');
+        if (status && status.innerText === '未连接') {
+            status.innerText = '未加载数据，请点击 Demo';
+            status.style.color = 'var(--accent-yellow)';
+        }
+    };
+
+    window.setDemoButtonsLoading = function(isLoading) {
+        ['btnDemoHeader', 'btnDemoHero'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.disabled = isLoading;
+            btn.innerText = isLoading ? '加载 Demo 中...' : '立即体验 Demo';
+        });
+    };
+
+    window.resetDefaultChannelDisplay = function() {
+        const checkboxes = document.querySelectorAll('#channelControls input');
+        window.chartInstance?.data?.datasets?.forEach((dataset, idx) => {
+            dataset.hidden = false;
+            if (checkboxes[idx]) checkboxes[idx].checked = true;
+        });
+        if (window.powerChartInstance?.data?.datasets?.[0]) {
+            window.powerChartInstance.data.datasets[0].hidden = false;
+            const powerCheckbox = checkboxes[window.dynamicChannels.length];
+            if (powerCheckbox) powerCheckbox.checked = true;
+        }
+        window.chartInstance?.update('none');
+        window.powerChartInstance?.update('none');
+    };
+
+    window.loadDemoData = async function() {
+        window.setDemoButtonsLoading(true);
+        window.dismissOnboardingToast();
+        try {
+            window.logAgent?.('超级个体', '开始加载内置 refrigerator_demo.csv 演示数据。', 'normal', 'DEMO_LOAD');
+            const res = await fetch(`${window.DEMO_CSV_PATH}?t=${Date.now()}`);
+            if (!res.ok) throw new Error(`Demo CSV 加载失败 HTTP ${res.status}`);
+            const text = await res.text();
+            await window.dataExtractorAgent.processCSVText(text, 'refrigerator_demo.csv');
+            window.resetDefaultChannelDisplay();
+            if (window.monitorAgent?.loadAllRemaining) window.monitorAgent.loadAllRemaining();
+            window.updateOnboardingState();
+            window.logAgent?.('Demo 引导Agent', 'Demo 数据已加载，默认通道已显示。可以点击示例 Prompt 或打开 cloud_sheet.html 继续演示。', 'success', 'DEMO_READY');
+        } catch (error) {
+            window.logAgent?.('Demo 引导Agent', `Demo 加载失败：${error.message}`, 'error', 'DEMO_LOAD');
+            alert(`Demo 加载失败：${error.message}`);
+        } finally {
+            window.setDemoButtonsLoading(false);
+        }
+    };
+
+    window.runExamplePrompt = function(promptText) {
+        const input = document.getElementById('nlCommand');
+        if (input) {
+            input.value = promptText;
+            input.focus();
+        }
+        if (!window.rawData?.length) {
+            alert('请先点击「立即体验 Demo」加载样例数据。');
+            return;
+        }
+        executeNlCommand();
+    };
+
+    window.applyHideBadChannels = function() {
+        let hiddenChannels = [];
+        const min = window.monitorAgent ? window.monitorAgent.tempRange.min : -70;
+        const max = window.monitorAgent ? window.monitorAgent.tempRange.max : 200;
+        window.dynamicChannels.forEach((ch, idx) => {
+            const dataArr = window.chartInstance?.data?.datasets?.[idx]?.data;
+            if (!dataArr) return;
+            if (dataArr.some(val => val !== null && val !== undefined && (val < min || val > max))) {
+                window.chartInstance.data.datasets[idx].hidden = true;
+                const checkboxes = document.querySelectorAll('.channel-toggle input');
+                if (checkboxes[idx]) checkboxes[idx].checked = false;
+                hiddenChannels.push(ch.name);
+            }
+        });
+        if(window.chartInstance) window.chartInstance.update('none');
+        window.logAgent('超级个体', `系统指令：[隐藏当前异常通道 - ${hiddenChannels.length ? hiddenChannels.join(',') : '无'}]`, 'normal', 'HIDE_BAD_CHANNELS');
+        return hiddenChannels;
+    };
+
+    window.applyIsolateChannels = function(targets = [], codeRef = 'ISOLATE_CHANNEL') {
+        const resolvedTargets = window.resolveChannelNames ? window.resolveChannelNames(targets) : targets;
+        const isAll = !resolvedTargets.length || resolvedTargets.includes('ALL');
+        window.dynamicChannels.forEach((ch, idx) => {
+            const isTarget = isAll || resolvedTargets.some(t => ch.name === t || ch.id === t);
+            if(window.chartInstance) window.chartInstance.data.datasets[idx].hidden = !isTarget;
+            const checkboxes = document.querySelectorAll('.channel-toggle input');
+            if(checkboxes[idx]) checkboxes[idx].checked = isTarget;
+        });
+        if (window.hasPower && window.powerChartInstance) {
+            const isPowerTarget = isAll || resolvedTargets.some(t => String(t).includes('功率'));
+            window.powerChartInstance.data.datasets[0].hidden = !isPowerTarget;
+            const powerCheckbox = document.querySelectorAll('.channel-toggle input')[window.dynamicChannels.length];
+            if (powerCheckbox) powerCheckbox.checked = isPowerTarget;
+            window.powerChartInstance.update('none');
+        }
+        if(window.chartInstance) window.chartInstance.update('none');
+        window.logAgent('超级个体', `系统指令：[独占显示通道 - ${isAll ? '所有' : resolvedTargets.join(',')}]`, 'normal', codeRef);
+        return resolvedTargets;
+    };
+
+    window.resolveDemoIceMembraneChannels = function() {
+        const preferred = /(冰膜|制冰|ice|membrane|F蒸|F-托盘|托盘|蒸发)/i;
+        const matches = (window.dynamicChannels || []).filter(ch => preferred.test(ch.name)).map(ch => ch.name);
+        return matches.length ? matches.slice(0, 4) : (window.dynamicChannels || []).slice(0, 1).map(ch => ch.name);
+    };
+
+    window.tryExecuteLocalDemoCommand = function(userCmd) {
+        const text = String(userCmd || '').trim().toLowerCase();
+        if (!text || !window.rawData?.length) return false;
+        if (/cut|remove|delete|erase/.test(text) && /above|over|greater|higher|>/.test(text) && /150/.test(text)) {
+            window.runFixEraseWorkflow({ channels: ['ALL'], operator: 'gt', value: 150 }, userCmd);
+            return true;
+        }
+        if (/hide/.test(text) && /bad/.test(text) && /channel/.test(text)) {
+            window.applyHideBadChannels();
+            return true;
+        }
+        if (/show/.test(text) && /ice/.test(text) && /membrane/.test(text)) {
+            window.applyIsolateChannels(window.resolveDemoIceMembraneChannels(), 'DEMO_SHOW_ICE_MEMBRANE');
+            return true;
+        }
+        return false;
+    };
 
 
 
@@ -628,6 +856,7 @@
         const savedKey = localStorage.getItem('opc_api_key');
         if(savedKey) document.getElementById('deepseekApiKey').value = savedKey;
         window.setupNativeZoomPan();
+        window.showInitialOnboarding();
         
         async function tryAutoFetch() {
             try {
@@ -687,6 +916,7 @@
             });
             controlDiv.innerHTML += `<div style="height:1px; background:var(--border); margin: 5px 0;"></div><label class="channel-toggle"><span style="width:12px;height:4px;background:#ff4081;border-radius:2px;"></span><input type="checkbox" checked onchange="window.togglePowerUI()">功率</label>`;
         } else { document.getElementById('powerChartContainer').style.display = 'none'; }
+        window.updateOnboardingState();
     };
 
     window.toggleChannelUI = function(idx) {
@@ -1088,9 +1318,14 @@
     async function executeNlCommand() {
         const apiKey = document.getElementById('deepseekApiKey').value.trim();
         const userCmd = document.getElementById('nlCommand').value.trim();
-        if (!apiKey) { alert("请先在右上角输入或缓存 DeepSeek API Key！"); return; }
         if (!userCmd) return;
+        if (!window.rawData?.length) { alert('请先点击「立即体验 Demo」或上传 CSV 数据。'); return; }
         window.captureUndoSnapshot(userCmd);
+        if (!apiKey && window.tryExecuteLocalDemoCommand(userCmd)) {
+            document.getElementById('nlCommand').value = '';
+            return;
+        }
+        if (!apiKey) { alert("请先在右上角输入或缓存 DeepSeek API Key；示例 Prompt 可在加载 Demo 后无 Key 运行。"); return; }
 
         const btn = document.getElementById('btnNlSubmit'); btn.innerText = "⏳ 解析..."; btn.disabled = true;
         window.logAgent('超级个体', `NL2Action 指令：[${userCmd}]`, 'normal', 'USER_NL_INPUT');
@@ -1158,20 +1393,7 @@
                 if (!isNaN(min) && !isNaN(max)) { if (window.monitorAgent) window.monitorAgent.setRange(min, max); }
             }
             else if (intent.action === "hide_bad_channels") {
-                let hiddenChannels = [];
-                const min = window.monitorAgent ? window.monitorAgent.tempRange.min : -70;
-                const max = window.monitorAgent ? window.monitorAgent.tempRange.max : 200;
-                window.dynamicChannels.forEach((ch, idx) => {
-                    const dataArr = window.chartInstance?.data?.datasets?.[idx]?.data;
-                    if (!dataArr) return;
-                    if (dataArr.some(val => val !== null && val !== undefined && (val < min || val > max))) {
-                        window.chartInstance.data.datasets[idx].hidden = true;
-                        const checkboxes = document.querySelectorAll('.channel-toggle input'); if(checkboxes[idx]) checkboxes[idx].checked = false;
-                        hiddenChannels.push(ch.name);
-                    }
-                });
-                if(window.chartInstance) window.chartInstance.update('none');
-                window.logAgent('超级个体', `系统指令：[隐藏当前异常通道 - ${hiddenChannels.length ? hiddenChannels.join(',') : '无'}]`, 'normal', 'HIDE_BAD_CHANNELS');
+                window.applyHideBadChannels();
             }
             else if (intent.action === "hide_above_threshold") {
                 const threshold = parseFloat(intent.value);
