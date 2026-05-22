@@ -392,7 +392,9 @@
     window.isAutoScroll = true; 
     window.currentWindowSize = 60;
     window.globalViewMode = 'full'; // full=左边界锁定初始时刻，右边界随数据增长；window=局部缩放/平移窗口。
-    window.DEMO_CSV_PATH = 'refrigerator_demo.csv';
+    window.DEMO_CSV_PATH = window.location.pathname.includes('/public-demo/')
+        ? '../demo-data/refrigerator_demo.csv'
+        : 'demo-data/refrigerator_demo.csv';
 
     window.setBtnSafe = function(id, isDisabled) { const el = document.getElementById(id); if (el) el.disabled = isDisabled; };
     window.saveApiKey = function(val) { if(val) localStorage.setItem('opc_api_key', val); };

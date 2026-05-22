@@ -28,10 +28,18 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Prepare public demo artifact
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp -R public-demo/. _site/
+          mkdir -p _site/demo-data
+          cp -R demo-data/. _site/demo-data/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
