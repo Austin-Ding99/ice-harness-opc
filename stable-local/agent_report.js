@@ -202,6 +202,12 @@ window.reportAgent = {
                 body: JSON.stringify({ model: "deepseek-chat", messages: [{"role": "user", "content": prompt}] })
             });
             const result = await response.json();
+            window.logTokenUsage?.(
+                '分析与报告Agent',
+                'PPT诊断 DeepSeek 通讯完成',
+                result.usage,
+                'LLM_TOKEN_USAGE'
+            );
             const analysisText = result.choices[0].message.content;
             
             logAgent('分析与报告Agent', `<div style="background:#161b22; padding:10px; border-left:3px solid #d29922; margin-top:8px;"><b>【深度诊断文案完毕，正在排版并渲染高分图表】</b><br>${analysisText.replace(/\n/g, '<br>')}</div>`, 'normal', 'REPORT_GEN');

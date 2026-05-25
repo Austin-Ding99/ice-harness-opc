@@ -259,6 +259,12 @@ window.dataExtractorAgent = {
                     continue;
                 }
                 const result = await response.json();
+                window.logTokenUsage?.(
+                    '表格清洗与云端同步Agent',
+                    'CSV表头识别 DeepSeek 通讯完成',
+                    result.usage,
+                    'LLM_TOKEN_USAGE'
+                );
                 const message = result?.choices?.[0]?.message || {};
                 const finishReason = result?.choices?.[0]?.finish_reason || 'unknown';
                 const toolCallCount = Array.isArray(message.tool_calls) ? message.tool_calls.length : (message.function_call ? 1 : 0);

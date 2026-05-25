@@ -339,6 +339,16 @@
 
     window.setBtnSafe = function(id, isDisabled) { const el = document.getElementById(id); if (el) el.disabled = isDisabled; };
     window.saveApiKey = function(val) { if(val) localStorage.setItem('opc_api_key', val); };
+    window.formatTokenUsage = function(usage) {
+        if (!usage) return 'Token usage: 未返回';
+        const prompt = usage.prompt_tokens ?? usage.promptTokens ?? '-';
+        const completion = usage.completion_tokens ?? usage.completionTokens ?? '-';
+        const total = usage.total_tokens ?? usage.totalTokens ?? '-';
+        return `Token usage: prompt=${prompt}｜completion=${completion}｜total=${total}`;
+    };
+    window.logTokenUsage = function(agent, context, usage, codeRef = 'LLM_TOKEN_USAGE') {
+        window.logAgent?.(agent, `${context}｜${window.formatTokenUsage(usage)}`, usage ? 'success' : 'normal', codeRef);
+    };
 
     window.updateOnboardingState = function() {
         const hasData = Array.isArray(window.rawData) && window.rawData.length > 0;
@@ -1292,6 +1302,7 @@
                 : await requestIntent();
 
             const data = await response.json();
+            window.logTokenUsage('监理Agent', 'NL2Action DeepSeek 通讯完成', data.usage, 'LLM_TOKEN_USAGE');
             const toolCall = data.choices[0].message.tool_calls[0];
             let intent = JSON.parse(toolCall.function.arguments);
             intent = window.normalizeIntentByCommand(userCmd, intent);
@@ -1451,6 +1462,10 @@ const data = await response.json();
 let intent = JSON.parse(data.choices[0].message.tool_calls[0].function.arguments);
 intent = normalizeIntentByCommand(userCmd, intent);
 logAgent('监理Agent', 'FC 调度：' + JSON.stringify(intent));`,
+        LLM_TOKEN_USAGE: `// 读取 DeepSeek usage，展示本次通讯消耗
+const result = await response.json();
+logTokenUsage('监理Agent', 'DeepSeek 通讯完成', result.usage);
+// usage = { prompt_tokens, completion_tokens, total_tokens }`,
         FIX_ERASE_WORKFLOW: `// 监理Agent ➔ 表格清洗与云端同步Agent
 function runFixEraseWorkflow(intent, userCmd) {
   const rule = parseEraseRuleFromCommand(userCmd, intent);

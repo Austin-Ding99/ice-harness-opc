@@ -14,6 +14,7 @@
         '表格清洗与云端同步Agent',
         '分析与报告Agent'
     ];
+    const BLOCKED_AGENTS = ['Demo 引导Agent'];
 
     function loadJSON(key, fallback) {
         try {
@@ -49,12 +50,17 @@
 
     function normalizeAgent(agent) {
         const name = String(agent || '监理Agent');
+        if (BLOCKED_AGENTS.includes(name)) return '监理Agent';
         if (name.includes('监控') || name.includes('预警')) return '实验监控与预警Agent';
         if (name.includes('提取') || name.includes('通道')) return '数据提取与通道选择Agent';
         if (name.includes('清洗') || name.includes('同步')) return '表格清洗与云端同步Agent';
         if (name.includes('分析') || name.includes('报告')) return '分析与报告Agent';
         if (name.includes('监理')) return '监理Agent';
         return name;
+    }
+
+    function isBlockedAgent(agent) {
+        return BLOCKED_AGENTS.includes(String(agent || ''));
     }
 
     function makeId(prefix) {
@@ -69,9 +75,11 @@
         initDone: false,
 
         init() {
-            this.logs = loadJSON(STORAGE.logs, []);
-            this.tasks = loadJSON(STORAGE.tasks, []);
-            this.health = loadJSON(STORAGE.health, {});
+            this.logs = loadJSON(STORAGE.logs, []).filter(entry => !isBlockedAgent(entry.agent));
+            this.tasks = loadJSON(STORAGE.tasks, []).filter(task => !isBlockedAgent(task.agent));
+            this.health = Object.fromEntries(
+                Object.entries(loadJSON(STORAGE.health, {})).filter(([agent]) => !isBlockedAgent(agent))
+            );
             this.checkpointSnapshot = loadJSON(STORAGE.checkpoint, null);
             AGENTS.forEach(agent => {
                 if (!this.health[agent]) {
@@ -86,6 +94,7 @@
             });
             this.initDone = true;
             this.updateHealth('监理Agent', '在线', '运行时接管任务台账、断点与健康巡检');
+            this.persist();
             this.renderAll();
             this.updateResumeButton();
             if (!this._timer) {
@@ -104,6 +113,7 @@
         },
 
         recordLog(agent, message, type = 'normal', codeRef = null) {
+            if (isBlockedAgent(agent)) return;
             const normalizedAgent = normalizeAgent(agent);
             const entry = {
                 id: makeId('log'),
@@ -301,6 +311,7 @@
         },
 
         updateHealth(agent, status, detail, failed = false) {
+            if (isBlockedAgent(agent)) return;
             const name = normalizeAgent(agent);
             const current = this.health[name] || { name, failures: 0 };
             this.health[name] = {

@@ -152,6 +152,18 @@
         } catch (_) {}
     }
 
+    function formatTokenUsage(usage) {
+        if (!usage) return 'Token usage: 未返回';
+        const prompt = usage.prompt_tokens ?? usage.promptTokens ?? '-';
+        const completion = usage.completion_tokens ?? usage.completionTokens ?? '-';
+        const total = usage.total_tokens ?? usage.totalTokens ?? '-';
+        return `Token usage: prompt=${prompt}｜completion=${completion}｜total=${total}`;
+    }
+
+    function emitTokenUsage(context, usage) {
+        emitIndexLog('分析与报告Agent', `${context}｜${formatTokenUsage(usage)}`, usage ? 'success' : 'normal', 'LLM_TOKEN_USAGE');
+    }
+
     function saveMarkers() {
         try {
             const payload = (window.sliceMarkers || []).map(markers => (markers || []).map(m => ({
@@ -1665,7 +1677,9 @@
         const markerSummary = buildMarkerSummary();
         try {
             const response = await fetchWithCloudRetry('云端Sheet生成PPTX报告', () => fetch('https://api.deepseek.com/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'user', content: `你是一位资深制冷设备分析专家。请基于以下数据输出核心诊断内容，不要写‘根据提供的数据’这类开场白，不要用Markdown代码块。可以使用标题、短句、项目符号和Markdown表格；表格会被程序转换成PPT内的真实表格。请重点结合用户在曲线上添加的①②③等关键标记；如果用户要求中提到“①处/②处”，必须使用对应标记时刻的数据进行分析。\n${dataSummary}\n${markerSummary}\n用户要求：${configText}` }] }) }));
-            const analysisText = sanitizePptText((await response.json()).choices[0].message.content);
+            const result = await response.json();
+            emitTokenUsage('云端Sheet生成PPTX报告 DeepSeek 通讯完成', result.usage);
+            const analysisText = sanitizePptText(result.choices[0].message.content);
             let pptx = new PptxGenJS();
             window._pptOriginalActiveIndex = Math.max(0, Array.from(document.querySelectorAll('.tab-btn')).findIndex(btn => btn.classList.contains('active')));
             let slideTitle = pptx.addSlide();
