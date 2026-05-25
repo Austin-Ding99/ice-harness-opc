@@ -23,10 +23,11 @@ https://austin-ding99.github.io/ice-harness-opc/
 首次体验路径：
 
 1. 打开公网演示页。
-2. 点击「立即体验 Demo」。
+2. 点击「加载示例数据」。
 3. 页面自动读取 `demo-data/refrigerator_demo.csv`。
-4. 点击示例 Prompt 体验自然语言控制。
-5. 打开 `cloud_sheet.html`，标记曲线并导出 PPTX。
+4. 数据按本地实验版的监控节奏随时间滚动，不再一次性铺满图表。
+5. 点击示例 Prompt 体验自然语言控制。
+6. 打开 `cloud_sheet.html`，标记曲线并导出 PPTX。
 
 内置示例 Prompt：
 
