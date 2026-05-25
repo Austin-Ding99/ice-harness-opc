@@ -1255,7 +1255,7 @@
     function openPPTModal() {
         const existingConfig = localStorage.getItem('cmd_PPT_txt');
         if (existingConfig) document.getElementById('pptTemplateText').value = existingConfig;
-        else document.getElementById('pptTemplateText').value = "除了标题页之外，不用加文字。可结合图中①②标记分析关键时刻。";
+        else document.getElementById('pptTemplateText').value = "分析标记序号之间的温度变化，以及时间跨度";
         document.getElementById('pptConfigModal').style.display = 'flex';
     }
     function closePPTModal() { document.getElementById('pptConfigModal').style.display = 'none'; }

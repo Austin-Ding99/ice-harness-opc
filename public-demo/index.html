@@ -188,8 +188,9 @@
         .demo-primary-btn:disabled { opacity:0.6; }
         .demo-prompt-strip { display:flex; align-items:center; gap:8px; padding:6px 12px; border-bottom:1px solid var(--border); background:var(--panel-bg); flex-shrink:0; overflow-x:auto; }
         .demo-prompt-title { color:var(--text-muted); font-size:0.74rem; white-space:nowrap; }
+        .demo-prompt-note { color:var(--text-muted); font-size:0.74rem; white-space:nowrap; }
         .demo-chip { font-family:'Consolas','Monaco',monospace; font-size:0.72rem; color:var(--accent-blue); border-color:rgba(88,166,255,0.36); background:var(--panel-strong); padding:4px 8px; white-space:nowrap; }
-        .demo-api-spacer { flex:1 1 auto; min-width:18px; }
+        .demo-api-strip { display:flex; align-items:center; gap:8px; padding:0 12px 6px; border-bottom:1px solid var(--border); background:var(--panel-bg); flex-shrink:0; }
         .demo-api-title { color:var(--text-muted); font-size:0.74rem; white-space:nowrap; }
         .demo-api-btn { color:var(--accent-green); border-color:rgba(63,185,80,0.42); background:var(--panel-strong); padding:4px 9px; white-space:nowrap; }
         @media (max-width: 720px) {
@@ -217,7 +218,7 @@
             <option value="20">25x</option>
         </select>
         <button id="btnDemoHeader" class="demo-primary-btn" onclick="window.loadDemoData()">加载示例数据</button>
-        <button id="btnUpload" onclick="document.getElementById('csvFileInput').click()" style="border-color: var(--accent-blue); color: var(--accent-blue);">📂</button>
+        <button id="btnUpload" onclick="document.getElementById('csvFileInput').click()" style="border-color: var(--accent-blue); color: var(--accent-blue);">加载本地数据📂</button>
         <button id="btnStart" class="primary" onclick="handleAction('开始监控', 'CMD_START')" disabled>▶ 开始</button>
         <button id="btnTestPause" onclick="handleAction('暂停/继续试验', 'CMD_PAUSE')" disabled>⏸ 暂停</button>
         <button id="btnFixFault" class="success" onclick="handleAction('剔除坏点并修复', 'CMD_FIX_ERASE')" style="display:none;">🛠️ 剔除异常</button>
@@ -245,7 +246,10 @@
     <button class="demo-chip" onclick="window.runExamplePrompt('剔除150℃以上数据')">剔除150℃以上数据</button>
     <button class="demo-chip" onclick="window.runExamplePrompt('隐藏异常通道')">隐藏异常通道</button>
     <button class="demo-chip" onclick="window.runExamplePrompt('显示冰膜温度')">显示冰膜温度</button>
-    <span class="demo-api-spacer"></span>
+    <span class="demo-prompt-note">（当然可以按照自己的自然语言输入）</span>
+</div>
+
+<div class="demo-api-strip" aria-label="体验 API">
     <span class="demo-api-title">体验API（DeepSeek）：</span>
     <button id="btnApiTest" class="demo-api-btn" onclick="window.testDeepSeekApi()">点击调用API</button>
 </div>
