@@ -100,6 +100,7 @@
         <button class="ai-btn" onclick="openPPTModal()">📊 生成数据分析 PPTX</button>
     </div>
     <div class="cloud-tool-strip" id="cloudToolStrip">
+        <span class="tool-hint">点击图线可添加①②时间点数据标记。</span>
         <button id="btnTimeSpanTool" onclick="activateMarkerTool('span')">标记时间跨度</button>
         <button id="btnStatsTool" onclick="activateMarkerTool('stats')">统计最大最小积分平均</button>
         <span class="tool-hint" id="markerToolHint">选择工具后，依次点击两条已有虚线。</span>
@@ -1153,7 +1154,7 @@
             });
         });
         panel.innerHTML = `<div class="segment-stats-title"><span>数据段统计</span><span>${groups.length ? `${groups.length} 个区间` : '未选择区间'}</span></div>` +
-            (rows ? `<table><thead><tr><th>数据区间</th><th>通道名称</th><th>最大值</th><th>最小值</th><th>积分平均值</th><th>单位</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="segment-stats-empty">点击“统计最大最小积分平均”，再依次选择两条虚线。</div>');
+            (rows ? `<table><thead><tr><th>数据区间</th><th>通道名称</th><th>最大值</th><th>最小值</th><th>积分平均值</th><th>单位</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="segment-stats-empty">页面左上角进行数据标记后显示。先点击图线添加①②虚线，再点“统计最大最小积分平均”并依次选择两条虚线。</div>');
     }
 
     function renderMarkers(sliceIndex) {

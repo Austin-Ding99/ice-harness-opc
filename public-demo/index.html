@@ -245,7 +245,9 @@
     <span class="demo-prompt-title">示例 Prompt：</span>
     <button class="demo-chip" onclick="window.runExamplePrompt('剔除150℃以上数据')">剔除150℃以上数据</button>
     <button class="demo-chip" onclick="window.runExamplePrompt('隐藏异常通道')">隐藏异常通道</button>
-    <button class="demo-chip" onclick="window.runExamplePrompt('显示冰膜温度')">显示冰膜温度</button>
+    <button class="demo-chip" onclick="window.runExamplePrompt('只显示功率通道')">只显示功率通道</button>
+    <button class="demo-chip" onclick="window.runExamplePrompt('turn off the broken tunnel')">turn off the broken tunnel</button>
+    <button class="demo-chip" onclick="window.runExamplePrompt('jieshushiyanba')">jieshushiyanba</button>
     <span class="demo-prompt-note">（当然可以按照自己的自然语言输入）</span>
 </div>
 
@@ -511,6 +513,22 @@
         return matches.length ? matches.slice(0, 4) : (window.dynamicChannels || []).slice(0, 1).map(ch => ch.name);
     };
 
+    window.showPowerOnly = function() {
+        window.dynamicChannels.forEach((ch, idx) => {
+            if (window.chartInstance?.data?.datasets?.[idx]) window.chartInstance.data.datasets[idx].hidden = true;
+            const checkbox = document.querySelectorAll('.channel-toggle input')[idx];
+            if (checkbox) checkbox.checked = false;
+        });
+        if (window.powerChartInstance?.data?.datasets?.[0]) {
+            window.powerChartInstance.data.datasets[0].hidden = false;
+            const powerCheckbox = document.querySelectorAll('.channel-toggle input')[window.dynamicChannels.length];
+            if (powerCheckbox) powerCheckbox.checked = true;
+            window.powerChartInstance.update('none');
+        }
+        window.chartInstance?.update('none');
+        window.logAgent('超级个体', '系统指令：[只显示功率通道]', 'normal', 'ISOLATE_CHANNEL');
+    };
+
     window.tryExecuteLocalDemoCommand = function(userCmd) {
         const text = String(userCmd || '').trim().toLowerCase();
         if (!text || !window.rawData?.length) return false;
@@ -520,6 +538,10 @@
         }
         if ((/hide/.test(text) && /bad/.test(text) && /channel/.test(text)) || (/隐藏|关闭|屏蔽/.test(userCmd) && /异常|坏点|超限/.test(userCmd))) {
             window.applyHideBadChannels();
+            return true;
+        }
+        if ((/show/.test(text) && /power/.test(text)) || (/只显示|只看|显示/.test(userCmd) && /功率/.test(userCmd))) {
+            window.showPowerOnly();
             return true;
         }
         if ((/show/.test(text) && /ice/.test(text) && /membrane/.test(text)) || (/显示|只看|只显示|打开/.test(userCmd) && /冰膜|制冰|蒸发|托盘/.test(userCmd))) {
