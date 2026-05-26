@@ -190,7 +190,6 @@
         .demo-prompt-title { color:var(--text-muted); font-size:0.74rem; white-space:nowrap; }
         .demo-prompt-note { color:var(--text-muted); font-size:0.74rem; white-space:nowrap; }
         .demo-chip { font-family:'Consolas','Monaco',monospace; font-size:0.72rem; color:var(--accent-blue); border-color:rgba(88,166,255,0.36); background:var(--panel-strong); padding:4px 8px; white-space:nowrap; }
-        .demo-api-strip { display:flex; align-items:center; gap:8px; padding:0 12px 6px; border-bottom:1px solid var(--border); background:var(--panel-bg); flex-shrink:0; }
         .demo-api-title { color:var(--text-muted); font-size:0.74rem; white-space:nowrap; }
         .demo-api-btn { color:var(--accent-green); border-color:rgba(63,185,80,0.42); background:var(--panel-strong); padding:4px 9px; white-space:nowrap; }
         @media (max-width: 720px) {
@@ -242,6 +241,8 @@
 </div>
 
 <div class="demo-prompt-strip" aria-label="示例 Prompt">
+    <span class="demo-api-title">体验API（DeepSeek）：</span>
+    <button id="btnApiTest" class="demo-api-btn" onclick="window.testDeepSeekApi()">点击调用API</button>
     <span class="demo-prompt-title">示例 Prompt：</span>
     <button class="demo-chip" onclick="window.runExamplePrompt('剔除150℃以上数据')">剔除150℃以上数据</button>
     <button class="demo-chip" onclick="window.runExamplePrompt('隐藏异常通道')">隐藏异常通道</button>
@@ -249,11 +250,6 @@
     <button class="demo-chip" onclick="window.runExamplePrompt('turn off the broken tunnel')">turn off the broken tunnel</button>
     <button class="demo-chip" onclick="window.runExamplePrompt('jieshushiyanba')">jieshushiyanba</button>
     <span class="demo-prompt-note">（当然可以按照自己的自然语言输入）</span>
-</div>
-
-<div class="demo-api-strip" aria-label="体验 API">
-    <span class="demo-api-title">体验API（DeepSeek）：</span>
-    <button id="btnApiTest" class="demo-api-btn" onclick="window.testDeepSeekApi()">点击调用API</button>
 </div>
 
 <div class="main-content">
