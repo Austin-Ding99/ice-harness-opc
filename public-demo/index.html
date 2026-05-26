@@ -192,6 +192,11 @@
         .demo-chip { font-family:'Consolas','Monaco',monospace; font-size:0.72rem; color:var(--accent-blue); border-color:rgba(88,166,255,0.36); background:var(--panel-strong); padding:4px 8px; white-space:nowrap; }
         .demo-api-title { color:var(--text-muted); font-size:0.74rem; white-space:nowrap; }
         .demo-api-btn { color:var(--accent-green); border-color:rgba(63,185,80,0.42); background:var(--panel-strong); padding:4px 9px; white-space:nowrap; }
+        .api-key-hint { display:none; position:fixed; top:82px; left:50%; transform:translateX(-50%); z-index:2600; width:min(560px, calc(100vw - 28px)); background:var(--tooltip-bg); color:var(--text-main); border:1px solid var(--accent-green); border-radius:12px; box-shadow:0 14px 42px var(--toolbar-shadow); padding:13px 15px; backdrop-filter:blur(8px); }
+        .api-key-hint.active { display:block; }
+        .api-key-hint strong { display:block; color:var(--accent-yellow); font-size:0.96rem; margin-top:7px; }
+        .api-key-hint p { margin:0; color:var(--text-muted); font-size:0.84rem; line-height:1.5; }
+        .api-key-hint button { margin-top:10px; padding:5px 10px; }
         @media (max-width: 720px) {
             body { overflow:auto; height:auto; min-height:100vh; }
             .main-content { min-height:620px; }
@@ -298,6 +303,12 @@
     <pre id="codeInspectorBody"></pre>
 </div>
 
+<div id="apiKeyHint" class="api-key-hint" role="dialog" aria-live="polite">
+    <p>请先在右上角 DeepSeek API Key 输入框填入 key。出于安全原因，公网源码不会内置私有 key。</p>
+    <strong>可在演示文件PPT中找到该体验key</strong>
+    <button onclick="window.closeApiKeyHint()">知道了，去填写</button>
+</div>
+
 <script>
     window.addEventListener('error', function(e) {
         const message = e.message || '未知脚本异常';
@@ -357,12 +368,21 @@
     window.logTokenUsage = function(agent, context, usage, codeRef = 'LLM_TOKEN_USAGE') {
         window.logAgent?.(agent, `${context}｜${window.formatTokenUsage(usage)}`, usage ? 'success' : 'normal', codeRef);
     };
+    window.showApiKeyHint = function() {
+        const hint = document.getElementById('apiKeyHint');
+        if (hint) hint.classList.add('active');
+        document.getElementById('deepseekApiKey')?.focus();
+    };
+    window.closeApiKeyHint = function() {
+        const hint = document.getElementById('apiKeyHint');
+        if (hint) hint.classList.remove('active');
+        document.getElementById('deepseekApiKey')?.focus();
+    };
     window.testDeepSeekApi = async function() {
         const input = document.getElementById('deepseekApiKey');
         const apiKey = input?.value?.trim() || localStorage.getItem('opc_api_key') || '';
         if (!apiKey) {
-            alert('请先在右上角 DeepSeek API Key 输入框填入 key。出于安全原因，公网源码不会内置私有 key。\n\n【重要】可在演示文件PPT中找到该体验key。');
-            input?.focus();
+            window.showApiKeyHint();
             return;
         }
         const btn = document.getElementById('btnApiTest');
