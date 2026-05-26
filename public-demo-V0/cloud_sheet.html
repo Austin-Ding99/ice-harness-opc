@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <title>Ice-Harness 云端切片协同矩阵</title>
+    <script>
+        (function() {
+            const theme = localStorage.getItem('opc_cloud_theme_v10') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    <script crossorigin="anonymous" src="https://unpkg.com/chart.js/dist/chart.umd.js"></script>
+    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js"></script>
+    <style>
+        :root {
+            --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #c9d1d9; --text-muted: #8b949e; --accent: #58a6ff; --hover: #1c2128;
+            --modal-bg: #161b22; --chart-grid: rgba(255,255,255,0.1); --chart-tick: #8b949e; --accent-yellow: #d29922;
+            --marker-bg: rgba(22,27,34,0.36); --marker-title-bg: rgba(22,27,34,0.82); --marker-text: #c9d1d9; --marker-border: #ff6b6b;
+            --tooltip-bg: rgba(22,27,34,0.96); --tooltip-text: #f0f6fc; --tooltip-muted: #a6b1c2;
+        }
+        [data-theme="light"] {
+            --bg: #f6f8fa; --panel: #ffffff; --border: #d0d7de; --text: #24292f; --text-muted: #57606a; --accent: #0969da; --hover: #f3f4f6;
+            --modal-bg: #ffffff; --chart-grid: rgba(0,0,0,0.1); --chart-tick: #57606a; --accent-yellow: #9a6700;
+            --marker-bg: rgba(255,255,255,0.36); --marker-title-bg: rgba(255,255,255,0.74); --marker-text: #24292f; --marker-border: #8b0000;
+            --tooltip-bg: rgba(255,255,255,0.98); --tooltip-text: #24292f; --tooltip-muted: #57606a;
+        }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; transition: background-color 0.3s, color 0.3s;}
+        .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px; flex-shrink: 0;}
+        .top-bar h1 { color: var(--accent); margin: 0; font-size: 1.5rem; text-align: center; flex: 1;}
+        button { background-color: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: bold; transition: 0.2s;}
+        button:hover { background-color: var(--hover); }
+        .ai-btn { background-color: #8957e5; color: white; border: none; box-shadow: 0 4px 10px rgba(137, 87, 229, 0.3); }
+        .ai-btn:hover { background-color: #9e75eb; }
+        .cloud-tool-strip { display:flex; align-items:center; gap:10px; flex-wrap:wrap; flex-shrink:0; margin:-4px 0 12px; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--panel); }
+        .cloud-tool-strip button { padding:6px 12px; font-size:0.82rem; }
+        .cloud-tool-strip button.active-tool { border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 2px rgba(88,166,255,0.14) inset; }
+        .tool-hint { color:var(--text-muted); font-size:0.78rem; min-height:18px; }
+        .tabs-container { display: flex; gap: 8px; border-bottom: 1px solid var(--border); margin-bottom: 15px; overflow-x: auto; flex-shrink: 0; padding-bottom: 2px;}
+        .tab-btn { background: var(--panel); color: var(--text-muted); border: 1px solid var(--border); border-bottom: none; padding: 10px 24px; border-radius: 8px 8px 0 0; }
+        .tab-btn.active { background: var(--bg); color: var(--accent); border-top: 3px solid var(--accent); border-bottom: 1px solid var(--bg); margin-bottom: -1px; }
+        .tab-content { display: none; gap: 20px; flex: 1; min-height: 0; overflow: hidden; }
+        .tab-content.active { display: flex; }
+        .charts-col { flex: 6; display: flex; flex-direction: column; gap: 15px; min-width: 0; overflow-y: auto; padding-right: 5px; }
+        .chart-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .chart-title-row { color: var(--accent-yellow); font-size: 1.05rem; margin-bottom: 12px; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 10px; display:flex; justify-content:space-between; gap:10px; align-items:center; }
+        .marker-help { font-size: 0.75rem; color: var(--text-muted); font-weight: normal; }
+        .chart-wrapper { width: 100%; height: 380px; position: relative; }
+        .power-wrapper { width: 100%; height: 200px; position: relative; margin-top:15px; border-top:1px dashed var(--border); padding-top:15px; }
+        .marker-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; overflow: visible; }
+        .marker-svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+        .marker-vline { position:absolute; top:0; bottom:0; width:0; border-left:2px dashed var(--marker-border); opacity:0.98; pointer-events:auto; cursor:ew-resize; }
+        .marker-label { position:absolute; top:4px; transform:translateX(-50%); background:var(--marker-border); color:#fff; border-radius:999px; width:24px; height:24px; line-height:24px; text-align:center; font-weight:800; box-shadow:0 2px 6px rgba(0,0,0,0.25); pointer-events:auto; cursor:move; user-select:none; }
+        .marker-box { position:absolute; min-width: 210px; min-height: 70px; width:260px; height:190px; overflow:hidden; resize:none; pointer-events:auto; cursor:move; background:var(--marker-bg); color:var(--marker-text); border:1px solid var(--marker-border); border-radius:10px; padding:0; box-shadow:0 8px 25px rgba(0,0,0,0.30); font-size:0.78rem; line-height:1.35; user-select:none; box-sizing:border-box; white-space:normal; scrollbar-gutter: stable; backdrop-filter: blur(3px); }
+        .marker-box.smooth-snap { transition: width 0.16s ease-out, height 0.16s ease-out; }
+        .marker-box-title { position:absolute; top:0; left:0; right:0; height:36px; z-index:2; color:var(--marker-border); background:var(--marker-title-bg); font-weight:800; border-bottom:1px solid var(--marker-border); padding:8px 10px 7px; word-break:break-all; box-sizing:border-box; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+        .marker-box.time-wrap .marker-box-title { height:54px; white-space:normal; line-height:1.2; text-overflow:clip; }
+        .marker-box.time-wrap .marker-box-body { top:54px; }
+        .marker-time-main, .marker-time-sub { display:inline; }
+        .marker-box.time-wrap .marker-time-main, .marker-box.time-wrap .marker-time-sub { display:block; }
+        .marker-box-body { position:absolute; top:36px; left:0; right:0; bottom:0; overflow:auto; padding:4px 10px 8px; box-sizing:border-box; scroll-snap-type:y proximity; }
+        .marker-resize-handle { position:absolute; right:0; bottom:0; width:34px; height:34px; cursor:nwse-resize; pointer-events:auto; border-right:3px solid var(--marker-border); border-bottom:3px solid var(--marker-border); opacity:0.9; background:linear-gradient(135deg, transparent 0 52%, rgba(139,0,0,0.18) 52% 100%); border-radius:0 0 9px 0; }
+        .marker-box-row { display:grid; grid-template-columns:minmax(84px,1fr) minmax(58px,auto); gap:10px; border-bottom:1px dashed rgba(128,128,128,0.24); padding:3px 0; min-height:26px; align-items:center; box-sizing:border-box; scroll-snap-align:start; }
+        .marker-box-name { overflow:visible; text-overflow:clip; white-space:normal; word-break:break-all; }
+        .marker-box-value { color:var(--text-muted); white-space:normal; word-break:break-word; text-align:right; }
+        .time-span-band { position:absolute; height:22px; pointer-events:auto; cursor:ns-resize; z-index:12; }
+        .time-span-band::before { content:""; position:absolute; left:0; right:0; top:10px; border-top:2px solid var(--accent-yellow); box-shadow:0 0 0 1px rgba(0,0,0,0.12); }
+        .time-span-label { position:absolute; left:50%; top:-3px; transform:translateX(-50%); padding:2px 7px; border-radius:999px; background:var(--panel); color:var(--accent-yellow); border:1px solid var(--accent-yellow); font-weight:800; font-family:'Consolas',monospace; font-size:0.74rem; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,0.22); }
+        .table-col { flex: 4; display: flex; flex-direction: column; gap:10px; overflow: hidden; min-width:0; }
+        .table-card, .stats-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height:0; }
+        .table-card { flex:1; }
+        .stats-card { flex:0 0 auto; max-height:260px; }
+        .table-header { padding: 12px 15px; background: var(--bg); border-bottom: 1px solid var(--border); font-weight: bold; color: var(--accent); display: flex; justify-content: space-between; align-items: center;}
+        .segment-stats { overflow:auto; background:var(--bg); }
+        .segment-stats-title { padding:8px 10px; color:var(--accent-yellow); font-weight:800; font-size:0.82rem; display:flex; justify-content:space-between; gap:8px; align-items:center; }
+        .segment-stats-empty { padding:0 10px 10px; color:var(--text-muted); font-size:0.76rem; }
+        .segment-stats table { font-size:0.74rem; }
+        .segment-stats th, .segment-stats td { padding:6px 8px; }
+        .channel-dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+        .table-container { flex: 1; overflow: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: center; }
+        th { position: sticky; top: 0; background: var(--panel); padding: 10px; border-bottom: 1px solid var(--border); font-weight: 600; white-space: nowrap;}
+        td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text-muted); white-space: nowrap; font-family: 'Consolas', monospace;}
+        tr:hover td { background: var(--hover); color: var(--text); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--modal-bg); padding: 25px; border-radius: 12px; width: 560px; border: 1px solid #8957e5; box-shadow: 0 10px 40px rgba(137,87,229,0.2); color: var(--text);}
+        textarea { width: calc(100% - 20px); background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 10px; border-radius: 6px; outline: none; margin-bottom: 15px; resize: vertical; font-family: inherit;}
+        .empty-state { text-align: center; color: var(--text-muted); margin-top: 50px; font-size: 1.2rem; width: 100%; }
+        #cloudTooltipDock { display:none; position:fixed; z-index:2000; pointer-events:none; max-width:340px; max-height:260px; overflow:auto; background:var(--tooltip-bg); color:var(--tooltip-text); border:1px solid var(--accent); border-radius:10px; box-shadow:0 10px 28px rgba(0,0,0,0.28); padding:9px 11px; font-family:'Consolas','Monaco',monospace; font-size:0.76rem; line-height:1.45; backdrop-filter:blur(6px); }
+        #cloudTooltipDock .tip-title { color:var(--accent); font-weight:800; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #cloudTooltipDock .tip-row { display:grid; grid-template-columns:12px minmax(0,1fr) auto; gap:7px; align-items:center; margin:2px 0; }
+        #cloudTooltipDock .tip-color { width:10px; height:3px; border-radius:2px; }
+        #cloudTooltipDock .tip-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        #cloudTooltipDock .tip-value { color:var(--tooltip-muted); white-space:nowrap; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <button onclick="toggleTheme()" id="themeBtn" style="background:transparent; border:none; padding:0; font-size:1.6rem; cursor:pointer;" title="切换主题">☀️</button>
+        <h1>☁️ 智数穿刺 - 云端切片数据协同矩阵</h1>
+        <button class="ai-btn" onclick="openPPTModal()">📊 生成数据分析 PPTX</button>
+    </div>
+    <div class="cloud-tool-strip" id="cloudToolStrip">
+        <span class="tool-hint">点击图线可添加①②时间点数据标记。</span>
+        <button id="btnTimeSpanTool" onclick="activateMarkerTool('span')">标记时间跨度</button>
+        <button id="btnStatsTool" onclick="activateMarkerTool('stats')">统计最大最小积分平均</button>
+        <span class="tool-hint" id="markerToolHint">选择工具后，依次点击两条已有虚线。</span>
+    </div>
+    <div class="tabs-container" id="tabsNav"></div>
+    <div id="tabsContent" style="display: flex; flex: 1; min-height: 0;"></div>
+    <div id="cloudTooltipDock"></div>
+
+    <div id="pptConfigModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:#bc8cff; margin-top:0;">📝 分析与报告Agent: 偏好对齐</h3>
+            <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; margin-bottom: 10px;">
+                检测到历史缓存的 PPT 报告模板，您可以直接使用，或点击右侧【手动载入】读取电脑里的 txt 文件。若已在图中点击标记，可在下方写“①处……、②处……”进行定点分析。
+            </p>
+            <div style="font-size:0.75rem; color:var(--accent-yellow); margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
+                <span>[读取路径]: 内存缓存 或 手动指定 .txt</span>
+                <input type="file" id="configFileUpload" accept=".txt" style="display:none;" onchange="readConfigFile(event)">
+                <button onclick="document.getElementById('configFileUpload').click()" style="background:transparent; border:1px dashed var(--accent-yellow); color:var(--accent-yellow); padding:3px 8px; font-size:0.7rem; border-radius:4px;">📂 手动载入</button>
+            </div>
+            <textarea id="pptTemplateText" rows="6" placeholder="例如：①处温度开始抬升，请分析原因；②处功率波动，请判断与温度通道是否存在关联。"></textarea>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="ai-btn" style="flex:1" onclick="generatePPT()" id="btnConfirmPPT">✔️ 确认指令并生成 PPTX</button>
+                <button style="flex:1" onclick="closePPTModal()">❌ 取消</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const COLORS = ['#ffa657', '#58a6ff', '#3fb950', '#a371f7', '#d29922', '#1f6feb', '#238636', '#ff7b72', '#8957e5', '#e34c26'];
+    const CIRCLED_NUMBERS = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫','⑬','⑭','⑮','⑯','⑰','⑱','⑲','⑳'];
+    const MARKER_ROW_H = 26;
+    const MARKER_TITLE_H = 36;
+    let globalSegments = [];
+    window.slideCanvases = [];
+    window.sliceMarkers = [];
+    window.sliceViewState = [];
+    window.sliceTimeSpans = [];
+    window.sliceStatRanges = [];
+    window.markerToolMode = null;
+    window.markerToolSelection = [];
+    window._sliceRestoreToken = 0;
+    window._boxScrollRestoreToken = 0;
+    const MARKER_STORAGE_KEY = 'opc_cloud_feature_markers_v11';
+    const VIEW_STORAGE_KEY = 'opc_cloud_view_state_v11';
+    const MARKER_TITLE_H_WRAP = 54;
+
+    function emitIndexLog(agent, message, type = 'normal', codeRef = 'REPORT_GEN') {
+        try {
+            localStorage.setItem('opc_cross_log', JSON.stringify({ ts: Date.now(), agent, message, type, codeRef }));
+        } catch (_) {}
+    }
+
+    function formatTokenUsage(usage) {
+        if (!usage) return 'Token usage: 未返回';
+        const prompt = usage.prompt_tokens ?? usage.promptTokens ?? '-';
+        const completion = usage.completion_tokens ?? usage.completionTokens ?? '-';
+        const total = usage.total_tokens ?? usage.totalTokens ?? '-';
+        return `Token usage: prompt=${prompt}｜completion=${completion}｜total=${total}`;
+    }
+
+    function emitTokenUsage(context, usage) {
+        emitIndexLog('分析与报告Agent', `${context}｜${formatTokenUsage(usage)}`, usage ? 'success' : 'normal', 'LLM_TOKEN_USAGE');
+    }
+
+    function saveMarkers() {
+        try {
+            const payload = (window.sliceMarkers || []).map(markers => (markers || []).map(m => ({
+                id: m.id, order: m.order, rowIndex: m.rowIndex, labelY: m.labelY, boxX: m.boxX, boxY: m.boxY, boxW: m.boxW, boxH: m.boxH, boxScroll: m.boxScroll
+            })));
+            localStorage.setItem(MARKER_STORAGE_KEY, JSON.stringify(payload));
+        } catch (_) {}
+    }
+
+    function markerId() {
+        return `m_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
+    }
+
+    function activeSliceIndex() {
+        return Math.max(0, Array.from(document.querySelectorAll('.tab-btn')).findIndex(btn => btn.classList.contains('active')));
+    }
+
+    function saveViewState() {
+        try {
+            localStorage.setItem(VIEW_STORAGE_KEY, JSON.stringify(window.sliceViewState || []));
+        } catch (_) {}
+    }
+
+    function loadViewState(count) {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(VIEW_STORAGE_KEY) || '[]');
+            return Array.from({ length: count }, (_, i) => ({
+                tableTop: Number(parsed[i]?.tableTop) || 0,
+                tableLeft: Number(parsed[i]?.tableLeft) || 0,
+                chartsTop: Number(parsed[i]?.chartsTop) || 0
+            }));
+        } catch (_) {
+            return Array.from({ length: count }, () => ({ tableTop: 0, tableLeft: 0, chartsTop: 0 }));
+        }
+    }
+
+    function normalizeMarkerOrders(sliceIndex) {
+        const markers = window.sliceMarkers[sliceIndex] || [];
+        markers.sort((a, b) => a.order - b.order);
+        markers.forEach((m, i) => { m.order = i + 1; if (!m.id) m.id = markerId(); });
+    }
+
+    function loadMarkersForSegments(count, segments) {
+        return Array.from({ length: count }, () => []);
+    }
+
+    function circled(n) { return CIRCLED_NUMBERS[n - 1] || String(n); }
+    function fmt(v) {
+        if (v === null || v === undefined || v === '') return '-';
+        const num = Number(v);
+        if (!Number.isNaN(num)) return Math.abs(num) >= 10000 ? num.toExponential(2) : num.toFixed(1);
+        return String(v);
+    }
+    function refForChart(chart) {
+        return window.slideCanvases.find(ref => ref.tempChart === chart || ref.powerChart === chart) || null;
+    }
+    function collectCloudTooltipRows(ref, dataIndex) {
+        if (!ref || dataIndex < 0) return '';
+        const rows = [];
+        const pushRows = (chart) => {
+            if (!chart) return;
+            (chart.data?.datasets || []).forEach((ds, datasetIndex) => {
+                const visible = typeof chart.isDatasetVisible === 'function' ? chart.isDatasetVisible(datasetIndex) : !ds.hidden;
+                if (!visible) return;
+                const label = ds.label || '数据';
+                const raw = ds.data?.[dataIndex];
+                const color = ds.borderColor || ds.backgroundColor || 'var(--accent)';
+                const unit = label.includes('功率') ? 'W' : '℃';
+                const value = raw === null || raw === undefined || Number.isNaN(Number(raw)) ? '-' : `${Number(raw).toFixed(1)}${unit}`;
+                rows.push(`<div class="tip-row"><span class="tip-color" style="background:${color}"></span><span class="tip-name" title="${htmlEscape(label)}">${htmlEscape(label)}</span><span class="tip-value">${htmlEscape(value)}</span></div>`);
+            });
+        };
+        pushRows(ref.tempChart);
+        pushRows(ref.powerChart);
+        return rows.join('');
+    }
+    function cloudTooltipExternal(context) {
+        const tip = document.getElementById('cloudTooltipDock');
+        const tooltip = context.tooltip;
+        if (!tip || !tooltip || tooltip.opacity === 0) {
+            if (tip) tip.style.display = 'none';
+            return;
+        }
+        const firstPoint = tooltip.dataPoints && tooltip.dataPoints.length ? tooltip.dataPoints[0] : null;
+        const dataIndex = firstPoint ? firstPoint.dataIndex : -1;
+        const ref = refForChart(context.chart);
+        const fullTime = ref?.seg?.[dataIndex]?.[ref.timeKey];
+        const title = fullTime ?? (tooltip.title && tooltip.title.length ? tooltip.title[0] : '');
+        const combinedRows = collectCloudTooltipRows(ref, dataIndex);
+        const rows = combinedRows || (tooltip.dataPoints || []).map(dp => {
+            const ds = dp.dataset || {};
+            const label = ds.label || '数据';
+            const raw = dp.parsed && typeof dp.parsed.y !== 'undefined' ? dp.parsed.y : dp.raw;
+            const color = ds.borderColor || ds.backgroundColor || 'var(--accent)';
+            const unit = label.includes('功率') ? 'W' : '℃';
+            const value = raw === null || raw === undefined || Number.isNaN(Number(raw)) ? '-' : `${Number(raw).toFixed(1)}${unit}`;
+            return `<div class="tip-row"><span class="tip-color" style="background:${color}"></span><span class="tip-name" title="${htmlEscape(label)}">${htmlEscape(label)}</span><span class="tip-value">${value}</span></div>`;
+        }).join('');
+        tip.innerHTML = `<div class="tip-title">时间：${htmlEscape(title)}</div>${rows}`;
+        tip.style.display = 'block';
+        const canvasRect = context.chart.canvas.getBoundingClientRect();
+        const gap = 14;
+        const pad = 8;
+        const tipW = tip.offsetWidth || 300;
+        const tipH = tip.offsetHeight || 160;
+        let left = canvasRect.left + tooltip.caretX - tipW - gap;
+        if (left < pad) left = Math.min(window.innerWidth - tipW - pad, canvasRect.left + tooltip.caretX + gap);
+        let top = canvasRect.top + tooltip.caretY - Math.min(24, Math.floor(tipH * 0.18));
+        top = Math.max(pad, Math.min(window.innerHeight - tipH - pad, top));
+        tip.style.left = `${left}px`;
+        tip.style.top = `${top}px`;
+    }
+    function cloudTooltipOptions() {
+        return { enabled: false, mode: 'index', intersect: false, external: cloudTooltipExternal };
+    }
+    function htmlEscape(s) {
+        return String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    }
+    function timeKeyOf(seg) {
+        const keys = Object.keys(seg[0] || {});
+        if (keys.includes('绝对时间')) return '绝对时间';
+        if (keys.includes('Time')) return 'Time';
+        if (keys.includes('时间')) return '时间';
+        if (keys.includes('相对时间')) return '相对时间';
+        return keys[0];
+    }
+
+    function formatTimeForAxis(value) {
+        const raw = String(value ?? '').trim();
+        if (!raw) return '';
+        const hms = raw.match(/(\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/);
+        if (hms) return `${hms[1].padStart(2,'0')}:${hms[2]}:${(hms[3] || '00').padStart(2,'0')}`;
+        const compact = raw.match(/(\d{2})(\d{2})(\d{2})$/);
+        if (compact) return `${compact[1]}:${compact[2]}:${compact[3]}`;
+        return raw.length > 8 ? raw.slice(-8) : raw;
+    }
+
+    function downloadSegmentCSV(sliceIndex) {
+        const seg = globalSegments[sliceIndex] || [];
+        if (!seg.length) return;
+        const keys = Object.keys(seg[0]);
+        const escapeCsv = (v) => {
+            if (v === null || v === undefined) return '';
+            const str = String(v);
+            return /[",\n\r]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
+        };
+        const csv = [keys.map(escapeCsv).join(',')].concat(seg.map(row => keys.map(k => escapeCsv(row[k])).join(','))).join('\n');
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Ice_Harness_Sheet_${sliceIndex + 1}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+
+    function markerTimeParts(value) {
+        const raw = String(value ?? '').trim();
+        if (!raw) return { main: '', sub: '', full: '' };
+        const match = raw.match(/^(.+?)[\sT]+(\d{1,2}:?\d{2}:?\d{2}(?:\.\d+)?)$/);
+        if (match) return { main: `时间：${match[1]}`, sub: formatTimeForAxis(match[2]).replace(/:/g, ''), full: `时间：${raw}` };
+        const hms = raw.match(/(\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/);
+        if (hms && raw.length > hms[0].length) {
+            const main = raw.slice(0, raw.length - hms[0].length).trim();
+            return { main: `时间：${main}`, sub: `${hms[1].padStart(2, '0')}${hms[2]}${(hms[3] || '00').padStart(2, '0')}`, full: `时间：${raw}` };
+        }
+        return { main: `时间：${raw}`, sub: '', full: `时间：${raw}` };
+    }
+
+    function shouldWrapMarkerTitle(marker, ref) {
+        const info = markerValues(ref.seg, marker.rowIndex, ref.timeKey);
+        const parts = markerTimeParts(info.time);
+        if (!parts.sub) return false;
+        const full = `${circled(marker.order)} ${parts.full}`;
+        const estimatedPx = full.length * 8.4 + 24;
+        return (marker.boxW || 260) < estimatedPx;
+    }
+
+    function markerTitleHeight(marker, ref) {
+        return shouldWrapMarkerTitle(marker, ref) ? MARKER_TITLE_H_WRAP : MARKER_TITLE_H;
+    }
+
+    function markerTitleHTML(marker, ref) {
+        const info = markerValues(ref.seg, marker.rowIndex, ref.timeKey);
+        const parts = markerTimeParts(info.time);
+        const prefix = htmlEscape(circled(marker.order));
+        if (shouldWrapMarkerTitle(marker, ref) && parts.sub) {
+            return `${prefix} <span class="marker-time-main">${htmlEscape(parts.main)}</span><span class="marker-time-sub">${htmlEscape(parts.sub)}</span>`;
+        }
+        return `${prefix} ${htmlEscape(parts.full)}`;
+    }
+
+    function parseTimeSeconds(value) {
+        const raw = String(value ?? '').trim();
+        if (!raw) return null;
+        const numeric = Number(raw);
+        if (Number.isFinite(numeric)) return numeric;
+        const hms = raw.match(/(\d{1,2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/);
+        if (hms) {
+            return Number(hms[1]) * 3600 + Number(hms[2]) * 60 + Number(hms[3] || 0) + Number(`0.${hms[4] || 0}`);
+        }
+        const compact = raw.match(/(\d{2})(\d{2})(\d{2})(?:\.(\d+))?$/);
+        if (compact) {
+            return Number(compact[1]) * 3600 + Number(compact[2]) * 60 + Number(compact[3]) + Number(`0.${compact[4] || 0}`);
+        }
+        return null;
+    }
+
+    function rowTimeSeconds(ref, rowIndex) {
+        const row = ref.seg[rowIndex] || {};
+        const keys = [ref.timeKey, '相对时间', '时间', 'Time', '绝对时间'];
+        for (const key of keys) {
+            if (key in row) {
+                const seconds = parseTimeSeconds(row[key]);
+                if (seconds !== null) return seconds;
+            }
+        }
+        return rowIndex;
+    }
+
+    function durationSeconds(ref, aIdx, bIdx) {
+        const a = rowTimeSeconds(ref, aIdx);
+        const b = rowTimeSeconds(ref, bIdx);
+        if (a === null || b === null) return Math.abs(bIdx - aIdx);
+        let delta = b - a;
+        if (delta < 0 && Math.abs(delta) > 12 * 3600) delta += 24 * 3600;
+        return Math.abs(delta);
+    }
+
+    function formatDurationMMSS(seconds) {
+        const total = Math.max(0, Math.round(Number(seconds) || 0));
+        const hh = String(Math.floor(total / 3600)).padStart(2, '0');
+        const mm = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+        const ss = String(total % 60).padStart(2, '0');
+        return `${hh}:${mm}:${ss}`;
+    }
+
+    function combinedSpanMaxY(ref) {
+        if (!ref?.tempWrapper) return 0;
+        if (!ref.powerWrapper) return Math.max(2, ref.tempWrapper.clientHeight - 24);
+        const tempTop = ref.tempWrapper.offsetTop || 0;
+        const powerTop = ref.powerWrapper.offsetTop || ref.tempWrapper.clientHeight;
+        return Math.max(2, powerTop - tempTop + ref.powerWrapper.clientHeight - 24);
+    }
+
+    function spanCssYToCanvasY(ref, yCss, pOffset) {
+        const tempH = ref.tempWrapper.clientHeight || 1;
+        const tempScaleY = ref.temp.height / tempH;
+        if (!ref.powerWrapper || !ref.power) return yCss * tempScaleY;
+        const tempTop = ref.tempWrapper.offsetTop || 0;
+        const powerTopCss = (ref.powerWrapper.offsetTop || tempH) - tempTop;
+        if (yCss < powerTopCss) return yCss * tempScaleY;
+        const powerScaleY = ref.power.height / Math.max(1, ref.powerWrapper.clientHeight);
+        return pOffset + Math.max(0, yCss - powerTopCss) * powerScaleY;
+    }
+
+    function applyCloudTheme(theme) {
+        const safeTheme = theme === 'light' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', safeTheme);
+        const btn = document.getElementById('themeBtn');
+        if (btn) btn.innerText = safeTheme === 'dark' ? '☀️' : '🌙';
+    }
+    function toggleTheme() {
+        saveMarkers();
+        const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        const nextTheme = current === 'light' ? 'dark' : 'light';
+        localStorage.setItem('opc_cloud_theme_v10', nextTheme);
+        applyCloudTheme(nextTheme);
+        refreshCloudCharts();
+        const activeIdx = Array.from(document.querySelectorAll('.tab-btn')).findIndex(btn => btn.classList.contains('active'));
+        if (activeIdx >= 0) renderMarkers(activeIdx);
+    }
+
+    function refreshCloudCharts() {
+        const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim();
+        const tickColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-tick').trim();
+        window.slideCanvases.forEach(ref => {
+            [ref.tempChart, ref.powerChart].forEach(chart => {
+                if (!chart) return;
+                if (chart.options.scales?.x) { chart.options.scales.x.grid.color = gridColor; chart.options.scales.x.ticks.color = tickColor; }
+                if (chart.options.scales?.y) { chart.options.scales.y.grid.color = gridColor; chart.options.scales.y.ticks.color = chart === ref.powerChart ? '#ff4081' : tickColor; }
+                chart.update('none');
+            });
+        });
+    }
+
+    function syncCloudHover(sliceIndex, sourceChart, activeElements) {
+        const ref = window.slideCanvases[sliceIndex];
+        if (!ref || !sourceChart) return;
+        const charts = [ref.tempChart, ref.powerChart].filter(Boolean);
+        const point = activeElements && activeElements.length ? activeElements[0] : null;
+        const dataIndex = typeof point?.index === 'number' ? point.index : -1;
+        charts.forEach(chart => {
+            if (chart === sourceChart) return;
+            if (dataIndex < 0) {
+                chart.setActiveElements([]);
+            } else {
+                const visibleDatasetIndex = (chart.data?.datasets || []).findIndex((_, idx) => {
+                    return typeof chart.isDatasetVisible === 'function' ? chart.isDatasetVisible(idx) : !chart.data.datasets[idx].hidden;
+                });
+                if (visibleDatasetIndex >= 0 && chart.data.datasets[visibleDatasetIndex]?.data?.length > dataIndex) {
+                    chart.setActiveElements([{ datasetIndex: visibleDatasetIndex, index: dataIndex }]);
+                }
+            }
+            chart.update('none');
+        });
+    }
+
+    window.onload = function() {
+        applyCloudTheme(localStorage.getItem('opc_cloud_theme_v10') || 'light');
+        const dataStr = localStorage.getItem('opc_cloud_sync_data');
+        const nav = document.getElementById('tabsNav');
+        const container = document.getElementById('tabsContent');
+        if (!dataStr) { container.innerHTML = '<div class="empty-state">当前云端无缓存数据，请在主控台执行清洗切片。</div>'; return; }
+
+        globalSegments = JSON.parse(dataStr);
+        window.sliceViewState = loadViewState(globalSegments.length);
+        window.sliceMarkers = loadMarkersForSegments(globalSegments.length, globalSegments);
+        window.sliceTimeSpans = globalSegments.map(() => []);
+        window.sliceStatRanges = globalSegments.map(() => []);
+        const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim();
+        const tickColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-tick').trim();
+
+        globalSegments.forEach((seg, idx) => {
+            if (!seg || !seg.length) return;
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${idx === 0 ? 'active' : ''}`;
+            btn.innerText = `切片 Sheet ${idx + 1}`;
+            btn.onclick = () => switchTab(idx);
+            nav.appendChild(btn);
+
+            const contentPane = document.createElement('div');
+            contentPane.className = `tab-content ${idx === 0 ? 'active' : ''}`;
+            contentPane.id = `pane-${idx}`;
+
+            const chartsCol = document.createElement('div');
+            chartsCol.className = 'charts-col';
+            chartsCol.dataset.sliceIndex = String(idx);
+            chartsCol.addEventListener('scroll', () => {
+                if (window._restoringSliceView) return;
+                const state = window.sliceViewState[idx] || (window.sliceViewState[idx] = {});
+                state.chartsTop = chartsCol.scrollTop;
+                saveViewState();
+            });
+            const chartCard = document.createElement('div');
+            chartCard.className = 'chart-card';
+            chartCard.innerHTML = `<div class="chart-title-row"><span>📈 感兴趣特征可视化</span><span class="marker-help">单击曲线添加①②标记；编号可上下/左右拖动；虚线可拖动，双击删除；数据框可拖拽、缩放</span></div>`;
+            const mainChartDiv = document.createElement('div');
+            mainChartDiv.className = 'chart-wrapper';
+            const canvas = document.createElement('canvas');
+            mainChartDiv.appendChild(canvas);
+            chartCard.appendChild(mainChartDiv);
+
+            const hasPower = seg.length > 0 && Object.prototype.hasOwnProperty.call(seg[0], '功率');
+            let powerCanvas = null, powerChartDiv = null;
+            if (hasPower) {
+                powerChartDiv = document.createElement('div');
+                powerChartDiv.className = 'power-wrapper';
+                powerCanvas = document.createElement('canvas');
+                powerChartDiv.appendChild(powerCanvas);
+                chartCard.appendChild(powerChartDiv);
+            }
+            chartsCol.appendChild(chartCard);
+
+            const tableCol = document.createElement('div');
+            tableCol.className = 'table-col';
+            const tableCard = document.createElement('div');
+            tableCard.className = 'table-card';
+            tableCard.innerHTML = `<div class="table-header"><span>🗄️ 底层数据溯源</span><span style="display:flex;gap:8px;align-items:center;font-size:0.8rem;font-weight:normal;"><button onclick="downloadSegmentCSV(${idx})" style="padding:4px 8px;font-size:0.75rem;">⬇️ 下载CSV</button><span>共 ${seg.length} 行</span></span></div>`;
+            const statsCard = document.createElement('div');
+            statsCard.className = 'stats-card';
+            const statsPanel = document.createElement('div');
+            statsPanel.className = 'segment-stats';
+            statsPanel.id = `segment-stats-${idx}`;
+            statsCard.appendChild(statsPanel);
+            tableCol.appendChild(statsCard);
+            tableCol.appendChild(tableCard);
+            const tableContainer = document.createElement('div'); tableContainer.className = 'table-container'; tableContainer.dataset.sliceIndex = String(idx);
+            tableContainer.addEventListener('scroll', () => {
+                if (window._restoringSliceView) return;
+                const state = window.sliceViewState[idx] || (window.sliceViewState[idx] = {});
+                state.tableTop = tableContainer.scrollTop;
+                state.tableLeft = tableContainer.scrollLeft;
+                saveViewState();
+            });
+            let keys = Object.keys(seg[0]);
+            const tKey = timeKeyOf(seg);
+            keys = keys.filter(k => k !== tKey); keys.unshift(tKey);
+            let tableHTML = '<table><thead><tr>';
+            keys.forEach(k => tableHTML += `<th>${htmlEscape(k)}</th>`); tableHTML += '</tr></thead><tbody>';
+            seg.forEach(row => {
+                tableHTML += '<tr>';
+                keys.forEach(k => {
+                    let val = row[k];
+                    if (val === null || val === undefined) val = '<span style="color:var(--accent-red); font-weight:bold;">-</span>';
+                    else if (typeof val === 'number') val = fmt(val);
+                    else val = htmlEscape(val);
+                    tableHTML += `<td>${val}</td>`;
+                });
+                tableHTML += '</tr>';
+            });
+            tableHTML += '</tbody></table>';
+            tableContainer.innerHTML = tableHTML; tableCard.appendChild(tableContainer);
+            contentPane.appendChild(chartsCol); contentPane.appendChild(tableCol); container.appendChild(contentPane);
+
+            const labels = seg.map(row => formatTimeForAxis(row[tKey]));
+            const fixedYAxis = { afterFit(scale) { scale.width = 84; } };
+            const tempKeys = Object.keys(seg[0]).filter(k => !['时间','绝对时间','相对时间','Time','功率'].includes(k));
+            const datasets = tempKeys.map((k, kIdx) => ({ label: k, data: seg.map(row => row[k]), borderColor: COLORS[kIdx % COLORS.length], backgroundColor: COLORS[kIdx % COLORS.length], borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, pointHitRadius: 10, tension: 0.2 }));
+            const tChart = new Chart(canvas, { type: 'line', data: { labels, datasets }, options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false }, onHover: (event, active, chart) => syncCloudHover(idx, chart, active), plugins: { legend: { labels: { color: tickColor, usePointStyle: true, boxWidth: 8 } }, tooltip: cloudTooltipOptions() }, scales: { x: { display: !hasPower, grid: { color: gridColor }, ticks: { color: tickColor, maxTicksLimit: 12, maxRotation: 0, autoSkip: true } }, y: { afterFit: fixedYAxis.afterFit, grid: { color: gridColor }, ticks: { color: tickColor } } } } });
+            let pChart = null;
+            if (hasPower) pChart = new Chart(powerCanvas, { type: 'line', data: { labels, datasets: [{ label: '功率 (W)', data: seg.map(r => r['功率']), borderColor: '#ff4081', backgroundColor: 'rgba(255,64,129,0.2)', borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, pointHitRadius: 10, tension: 0.2, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false }, onHover: (event, active, chart) => syncCloudHover(idx, chart, active), plugins: { legend: { labels: { color: '#ff4081', usePointStyle: true, boxWidth: 8 } }, tooltip: cloudTooltipOptions() }, scales: { x: { grid: { color: gridColor }, ticks: { color: tickColor, maxTicksLimit: 12, maxRotation: 0, autoSkip: true } }, y: { afterFit: fixedYAxis.afterFit, grid: { color: gridColor }, ticks: { color: '#ff4081' } } } } });
+
+            window.slideCanvases.push({ temp: canvas, power: powerCanvas, hasPower, tempChart: tChart, powerChart: pChart, tempWrapper: mainChartDiv, powerWrapper: powerChartDiv, seg, timeKey: tKey });
+            canvas.addEventListener('click', (ev) => addFeatureMarker(idx, ev));
+        });
+        setTimeout(() => renderMarkers(0), 80);
+        localStorage.setItem('opc_cloud_auto_ppt', 'false');
+    };
+
+    function switchTab(index) {
+        persistActiveMarkerDomState();
+        saveViewState();
+        document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+        document.querySelectorAll('.tab-content').forEach((pane, i) => pane.classList.toggle('active', i === index));
+        const ref = window.slideCanvases[index];
+        if (ref) setTimeout(() => { ref.tempChart?.resize(); ref.powerChart?.resize(); restoreSliceViewState(index); renderMarkers(index); renderStatsPanel(index); }, 30);
+    }
+
+    function restoreSliceViewState(index) {
+        const pane = document.getElementById(`pane-${index}`);
+        const state = window.sliceViewState[index] || {};
+        const table = pane?.querySelector('.table-container');
+        const charts = pane?.querySelector('.charts-col');
+        const token = ++window._sliceRestoreToken;
+        const apply = () => {
+            if (token !== window._sliceRestoreToken) return;
+            window._restoringSliceView = true;
+            if (table) {
+                table.scrollTop = state.tableTop || 0;
+                table.scrollLeft = state.tableLeft || 0;
+            }
+            if (charts) charts.scrollTop = state.chartsTop || 0;
+            requestAnimationFrame(() => {
+                if (token === window._sliceRestoreToken) window._restoringSliceView = false;
+            });
+        };
+        apply();
+        requestAnimationFrame(apply);
+        setTimeout(apply, 80);
+        setTimeout(apply, 180);
+    }
+
+    function markerValues(seg, rowIndex, timeKey) {
+        const row = seg[rowIndex] || {};
+        const values = {};
+        Object.keys(row).forEach(k => { if (k !== timeKey) values[k] = row[k]; });
+        return { time: row[timeKey], values };
+    }
+
+    function addFeatureMarker(sliceIndex, ev) {
+        if (window.markerToolMode) {
+            updateToolHint('请点击两条已有虚线或编号来选择区间。退出工具后可继续新增标记。');
+            return;
+        }
+        const ref = window.slideCanvases[sliceIndex];
+        if (!ref || !ref.tempChart) return;
+        const rect = ref.temp.getBoundingClientRect();
+        const cssLeft = ref.tempChart.chartArea.left || 0;
+        const cssRight = ref.tempChart.chartArea.right || rect.width;
+        const xCss = Math.max(cssLeft, Math.min(cssRight, ev.clientX - rect.left));
+        let idx = Math.round(ref.tempChart.scales.x.getValueForPixel(xCss));
+        idx = Math.max(0, Math.min(ref.seg.length - 1, idx));
+        const order = window.sliceMarkers[sliceIndex].length + 1;
+        const m = { id: markerId(), order, rowIndex: idx, labelY: Math.max(4, Math.round(ref.tempWrapper.clientHeight / 2) - 12), boxX: Math.min(xCss + 18, Math.max(10, ref.tempWrapper.clientWidth - 260)), boxY: 44, boxW: 260, boxH: 190, boxScroll: 0 };
+        window.sliceMarkers[sliceIndex].push(m);
+        normalizeMarkerOrders(sliceIndex);
+        saveMarkers();
+        renderMarkers(sliceIndex);
+    }
+
+    function activateMarkerTool(mode) {
+        if (window.markerToolMode === mode) {
+            window.markerToolMode = null;
+            window.markerToolSelection = [];
+        } else {
+            window.markerToolMode = mode;
+            window.markerToolSelection = [];
+        }
+        document.getElementById('btnTimeSpanTool')?.classList.toggle('active-tool', window.markerToolMode === 'span');
+        document.getElementById('btnStatsTool')?.classList.toggle('active-tool', window.markerToolMode === 'stats');
+        const text = window.markerToolMode === 'span'
+            ? '标记时间跨度：请依次点击两条已有虚线。'
+            : window.markerToolMode === 'stats'
+                ? '统计最大最小积分平均：请依次点击两条已有虚线。'
+                : '选择工具后，依次点击两条已有虚线。';
+        updateToolHint(text);
+    }
+
+    window.addEventListener('beforeunload', () => {
+        persistActiveMarkerDomState();
+        saveViewState();
+    });
+
+    function updateToolHint(text) {
+        const hint = document.getElementById('markerToolHint');
+        if (hint) hint.textContent = text;
+    }
+
+    function selectMarkerForTool(sliceIndex, marker) {
+        if (!window.markerToolMode) return false;
+        const active = activeSliceIndex();
+        if (active !== sliceIndex) return true;
+        const selected = window.markerToolSelection || [];
+        if (!selected.find(item => item.marker.id === marker.id)) selected.push({ sliceIndex, marker });
+        window.markerToolSelection = selected.slice(-2);
+        if (window.markerToolSelection.length < 2) {
+            updateToolHint(`已选择 ${circled(marker.order)}，请再点击另一条虚线。`);
+            return true;
+        }
+        const [a, b] = window.markerToolSelection;
+        if (a.marker.id === b.marker.id) {
+            window.markerToolSelection = [b];
+            updateToolHint('两次选择了同一条虚线，请再点击另一条虚线。');
+            return true;
+        }
+        if (window.markerToolMode === 'span') addTimeSpan(sliceIndex, a.marker, b.marker);
+        if (window.markerToolMode === 'stats') addStatRange(sliceIndex, a.marker, b.marker);
+        window.markerToolSelection = [];
+        window.markerToolMode = null;
+        document.getElementById('btnTimeSpanTool')?.classList.remove('active-tool');
+        document.getElementById('btnStatsTool')?.classList.remove('active-tool');
+        updateToolHint('区间已生成。双击时间跨度可删除；统计表会随虚线移动刷新。');
+        return true;
+    }
+
+    function addTimeSpan(sliceIndex, aMarker, bMarker) {
+        const spans = window.sliceTimeSpans[sliceIndex] || (window.sliceTimeSpans[sliceIndex] = []);
+        spans.push({ id: `span_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`, aId: aMarker.id, bId: bMarker.id, y: 30 });
+        renderMarkers(sliceIndex);
+    }
+
+    function addStatRange(sliceIndex, aMarker, bMarker) {
+        const ranges = window.sliceStatRanges[sliceIndex] || (window.sliceStatRanges[sliceIndex] = []);
+        ranges.push({ id: `stats_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`, aId: aMarker.id, bId: bMarker.id });
+        renderStatsPanel(sliceIndex);
+    }
+
+    function getMarkerXCss(ref, marker) {
+        return ref.tempChart.scales.x.getPixelForValue(marker.rowIndex);
+    }
+
+    function ensureLayer(wrapper) {
+        let layer = wrapper.querySelector('.marker-layer');
+        if (!layer) { layer = document.createElement('div'); layer.className = 'marker-layer'; wrapper.appendChild(layer); }
+        layer.innerHTML = '';
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.classList.add('marker-svg');
+        layer.appendChild(svg);
+        return { layer, svg };
+    }
+
+    function renderPowerLines(ref, markers, sliceIndex) {
+        if (!ref.powerWrapper || !ref.powerChart) return;
+        const { layer } = ensureLayer(ref.powerWrapper);
+        markers.forEach(marker => {
+            const xCss = ref.powerChart.scales.x.getPixelForValue(marker.rowIndex);
+            const line = document.createElement('div');
+            line.className = 'marker-vline';
+            line.style.left = `${xCss}px`;
+            line.title = '拖动虚线调整关键时刻；双击删除该标记';
+            let dragging = false;
+            line.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                dragging = true;
+                try { line.setPointerCapture(e.pointerId); } catch (_) {}
+            });
+            line.addEventListener('pointermove', (e) => {
+                if (!dragging) return;
+                const wr = ref.power.getBoundingClientRect();
+                const cssLeft = ref.powerChart.chartArea.left || 0;
+                const cssRight = ref.powerChart.chartArea.right || wr.width;
+                const xCssRaw = Math.max(cssLeft, Math.min(cssRight, e.clientX - wr.left));
+                let nextIdx = Math.round(ref.powerChart.scales.x.getValueForPixel(xCssRaw));
+                nextIdx = Math.max(0, Math.min(ref.seg.length - 1, nextIdx));
+                marker.rowIndex = nextIdx;
+                line.style.left = `${ref.powerChart.scales.x.getPixelForValue(marker.rowIndex)}px`;
+                refreshTimeSpans(sliceIndex, ref);
+                renderStatsPanel(sliceIndex);
+            });
+            const finishDrag = (e) => {
+                if (!dragging) return;
+                dragging = false;
+                saveMarkers();
+                try { line.releasePointerCapture(e.pointerId); } catch (_) {}
+                renderMarkers(sliceIndex);
+            };
+            line.addEventListener('pointerup', finishDrag);
+            line.addEventListener('pointercancel', finishDrag);
+            line.addEventListener('click', (e) => {
+                if (selectMarkerForTool(sliceIndex, marker)) e.stopPropagation();
+            });
+            line.addEventListener('dblclick', (e) => { e.stopPropagation(); deleteMarker(sliceIndex, marker); });
+            layer.appendChild(line);
+        });
+    }
+
+    function buildMarkerBoxRowsHTML(marker, ref) {
+        const info = markerValues(ref.seg, marker.rowIndex, ref.timeKey);
+        let rows = '';
+        Object.entries(info.values).forEach(([k, v]) => {
+            rows += `<div class="marker-box-row"><span class="marker-box-name" title="${htmlEscape(k)}">${htmlEscape(k)}</span><span class="marker-box-value">${fmt(v)}</span></div>`;
+        });
+        return `<div class="marker-box-title">${markerTitleHTML(marker, ref)}</div><div class="marker-box-body">${rows}</div><div class="marker-resize-handle" title="拖动调整数据框大小"></div>`;
+    }
+
+    function buildMarkerBoxRowsOnlyHTML(marker, ref) {
+        const info = markerValues(ref.seg, marker.rowIndex, ref.timeKey);
+        let rows = '';
+        Object.entries(info.values).forEach(([k, v]) => {
+            rows += `<div class="marker-box-row"><span class="marker-box-name" title="${htmlEscape(k)}">${htmlEscape(k)}</span><span class="marker-box-value">${fmt(v)}</span></div>`;
+        });
+        return rows;
+    }
+
+    function refreshMarkerBoxContent(box, marker, ref) {
+        const title = box.querySelector('.marker-box-title');
+        const body = box.querySelector('.marker-box-body');
+        if (!title || !body) {
+            box.innerHTML = buildMarkerBoxRowsHTML(marker, ref);
+            return;
+        }
+        const info = markerValues(ref.seg, marker.rowIndex, ref.timeKey);
+        box.classList.toggle('time-wrap', shouldWrapMarkerTitle(marker, ref));
+        title.innerHTML = markerTitleHTML(marker, ref);
+        body.innerHTML = buildMarkerBoxRowsOnlyHTML(marker, ref);
+        body.scrollTop = marker.boxScroll || 0;
+    }
+
+    function restoreMarkerBoxScroll(box, marker) {
+        const body = box.querySelector('.marker-box-body');
+        if (!body) return;
+        const target = marker.boxScroll || 0;
+        const token = ++window._boxScrollRestoreToken;
+        requestAnimationFrame(() => {
+            if (token !== window._boxScrollRestoreToken) return;
+            body.scrollTop = target;
+            requestAnimationFrame(() => {
+                if (token === window._boxScrollRestoreToken) body.scrollTop = target;
+            });
+        });
+    }
+
+    function deleteMarker(sliceIndex, marker) {
+        const markers = window.sliceMarkers[sliceIndex] || [];
+        const pos = markers.indexOf(marker);
+        if (pos >= 0) markers.splice(pos, 1);
+        window.sliceTimeSpans[sliceIndex] = (window.sliceTimeSpans[sliceIndex] || []).filter(span => span.aId !== marker.id && span.bId !== marker.id);
+        window.sliceStatRanges[sliceIndex] = (window.sliceStatRanges[sliceIndex] || []).filter(range => range.aId !== marker.id && range.bId !== marker.id);
+        normalizeMarkerOrders(sliceIndex);
+        saveMarkers();
+        renderMarkers(sliceIndex);
+        renderStatsPanel(sliceIndex);
+    }
+
+    function refreshMarkerVisuals(ref, marker, xCss, line, label, box, arrow) {
+        line.style.left = `${xCss}px`;
+        label.style.left = `${xCss}px`;
+        label.style.top = `${Math.max(0, marker.labelY ?? 4)}px`;
+        label.textContent = circled(marker.order);
+        box.classList.toggle('time-wrap', shouldWrapMarkerTitle(marker, ref));
+        refreshMarkerBoxContent(box, marker, ref);
+        updateArrow(arrow, box, marker, xCss);
+    }
+
+    function enableLineXDrag(handle, marker, sliceIndex, ref, line, label, box, arrow) {
+        let dragging = false;
+        let moved = false;
+        const onDown = (e) => {
+            e.stopPropagation();
+            dragging = true;
+            moved = false;
+            try { handle.setPointerCapture(e.pointerId); } catch (_) {}
+        };
+        const onMove = (e) => {
+            if (!dragging) return;
+            moved = true;
+            moveMarkerToPointerX(e, marker, ref);
+            const snappedX = getMarkerXCss(ref, marker);
+            refreshMarkerVisuals(ref, marker, snappedX, line, label, box, arrow);
+            renderPowerLines(ref, window.sliceMarkers[sliceIndex] || [], sliceIndex);
+            refreshTimeSpans(sliceIndex, ref);
+            renderStatsPanel(sliceIndex);
+        };
+        const onUp = (e) => {
+            if (!dragging) return;
+            dragging = false;
+            saveMarkers();
+            try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
+        };
+        handle.addEventListener('pointerdown', onDown);
+        handle.addEventListener('pointermove', onMove);
+        handle.addEventListener('pointerup', onUp);
+        handle.addEventListener('pointercancel', onUp);
+        handle.addEventListener('click', e => { if (moved) e.stopPropagation(); });
+        handle.addEventListener('dblclick', e => { e.stopPropagation(); deleteMarker(sliceIndex, marker); });
+    }
+
+    function moveMarkerToPointerX(e, marker, ref) {
+        const rect = ref.temp.getBoundingClientRect();
+        const cssLeft = ref.tempChart.chartArea.left || 0;
+        const cssRight = ref.tempChart.chartArea.right || rect.width;
+        const xCssRaw = Math.max(cssLeft, Math.min(cssRight, e.clientX - rect.left));
+        let nextIdx = Math.round(ref.tempChart.scales.x.getValueForPixel(xCssRaw));
+        nextIdx = Math.max(0, Math.min(ref.seg.length - 1, nextIdx));
+        marker.rowIndex = nextIdx;
+    }
+
+    function enableLabelXYDrag(label, marker, sliceIndex, ref, line, box, arrow) {
+        let dragging = false;
+        let moved = false;
+        let offsetY = 0;
+        label.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            dragging = true;
+            moved = false;
+            const lr = label.getBoundingClientRect();
+            offsetY = e.clientY - lr.top;
+            try { label.setPointerCapture(e.pointerId); } catch (_) {}
+        });
+        label.addEventListener('pointermove', (e) => {
+            if (!dragging) return;
+            moved = true;
+            moveMarkerToPointerX(e, marker, ref);
+            const wr = ref.tempWrapper.getBoundingClientRect();
+            marker.labelY = Math.max(0, Math.min(wr.height - 26, e.clientY - wr.top - offsetY));
+            const snappedX = getMarkerXCss(ref, marker);
+            refreshMarkerVisuals(ref, marker, snappedX, line, label, box, arrow);
+            renderPowerLines(ref, window.sliceMarkers[sliceIndex] || [], sliceIndex);
+            refreshTimeSpans(sliceIndex, ref);
+            renderStatsPanel(sliceIndex);
+        });
+        const onUp = (e) => {
+            if (!dragging) return;
+            dragging = false;
+            saveMarkers();
+            try { label.releasePointerCapture(e.pointerId); } catch (_) {}
+        };
+        label.addEventListener('pointerup', onUp);
+        label.addEventListener('pointercancel', onUp);
+        label.addEventListener('click', e => { if (moved) e.stopPropagation(); });
+        label.addEventListener('dblclick', e => { e.stopPropagation(); deleteMarker(sliceIndex, marker); });
+    }
+
+    function snapMarkerBoxHeight(box, marker, animate = true) {
+        if (!box || box.offsetWidth <= 0 || box.offsetHeight <= 0) return;
+        const minRows = 1;
+        const sliceIndex = activeSliceIndex();
+        const ref = window.slideCanvases[sliceIndex];
+        const bodyTop = ref ? markerTitleHeight(marker, ref) : MARKER_TITLE_H;
+        const rows = Math.max(minRows, Math.round((box.offsetHeight - bodyTop - 8) / MARKER_ROW_H));
+        const snappedH = bodyTop + rows * MARKER_ROW_H + 8;
+        marker.boxH = snappedH;
+        marker.boxW = Math.max(210, box.offsetWidth);
+        if (ref) box.classList.toggle('time-wrap', shouldWrapMarkerTitle(marker, ref));
+        if (animate) box.classList.add('smooth-snap');
+        box.style.height = `${snappedH}px`;
+        box.style.width = `${marker.boxW}px`;
+        setTimeout(() => box.classList.remove('smooth-snap'), 190);
+    }
+
+    function enableBoxScrollSnap(box, marker) {
+        const body = box.querySelector('.marker-box-body');
+        if (!body) return;
+        let t = null;
+        body.addEventListener('scroll', () => {
+            marker.boxScroll = body.scrollTop;
+            if (t) clearTimeout(t);
+            t = setTimeout(() => {
+                const next = Math.max(0, Math.round(body.scrollTop / MARKER_ROW_H) * MARKER_ROW_H);
+                marker.boxScroll = next;
+                body.scrollTo({ top: next, behavior: 'smooth' });
+                setTimeout(() => { marker.boxScroll = body.scrollTop; saveMarkers(); }, 180);
+            }, 160);
+        });
+    }
+
+    function enableBoxResize(box, marker, ref, arrow, getX) {
+        const handle = box.querySelector('.marker-resize-handle');
+        if (!handle) return;
+        let resizing = false, startX = 0, startY = 0, startW = 0, startH = 0;
+        handle.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            resizing = true;
+            startX = e.clientX; startY = e.clientY;
+            startW = box.offsetWidth; startH = box.offsetHeight;
+            try { handle.setPointerCapture(e.pointerId); } catch (_) {}
+        });
+        handle.addEventListener('pointermove', (e) => {
+            if (!resizing) return;
+            const wr = ref.tempWrapper.getBoundingClientRect();
+            const nextW = Math.max(210, Math.min(wr.width - marker.boxX - 4, startW + e.clientX - startX));
+            const nextH = Math.max(MARKER_TITLE_H + MARKER_ROW_H + 8, Math.min(wr.height - marker.boxY - 4, startH + e.clientY - startY));
+            box.style.width = `${nextW}px`;
+            box.style.height = `${nextH}px`;
+            marker.boxW = nextW;
+            marker.boxH = nextH;
+            box.classList.toggle('time-wrap', shouldWrapMarkerTitle(marker, ref));
+            const title = box.querySelector('.marker-box-title');
+            if (title) title.innerHTML = markerTitleHTML(marker, ref);
+            updateArrow(arrow, box, marker, getX());
+        });
+        const finish = (e) => {
+            if (!resizing) return;
+            resizing = false;
+            snapMarkerBoxHeight(box, marker, true);
+            updateArrow(arrow, box, marker, getX());
+            saveMarkers();
+            try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
+        };
+        handle.addEventListener('pointerup', finish);
+        handle.addEventListener('pointercancel', finish);
+    }
+
+    function persistActiveMarkerDomState() {
+        const activePane = document.querySelector('.tab-content.active');
+        if (!activePane) return;
+        const activeIdx = Array.from(document.querySelectorAll('.tab-content')).indexOf(activePane);
+        const state = window.sliceViewState[activeIdx] || (window.sliceViewState[activeIdx] = {});
+        const table = activePane.querySelector('.table-container');
+        const charts = activePane.querySelector('.charts-col');
+        if (table) {
+            state.tableTop = table.scrollTop;
+            state.tableLeft = table.scrollLeft;
+        }
+        if (charts) state.chartsTop = charts.scrollTop;
+        saveViewState();
+        const markers = window.sliceMarkers[activeIdx] || [];
+        activePane.querySelectorAll('.marker-box').forEach(box => {
+            const idx = Number(box.dataset.markerIndex);
+            const marker = markers[idx];
+            if (!marker) return;
+            if (box.offsetWidth > 0) marker.boxW = box.offsetWidth;
+            if (box.offsetHeight > 0) marker.boxH = box.offsetHeight;
+            const body = box.querySelector('.marker-box-body');
+            if (body) marker.boxScroll = body.scrollTop;
+        });
+        saveMarkers();
+    }
+
+    function markerById(markers, id) {
+        return (markers || []).find(marker => marker.id === id) || null;
+    }
+
+    function renderTimeSpans(ref, markers, sliceIndex, layer) {
+        const spans = window.sliceTimeSpans[sliceIndex] || [];
+        spans.forEach(span => {
+            const a = markerById(markers, span.aId);
+            const b = markerById(markers, span.bId);
+            if (!a || !b) return;
+            const x1 = getMarkerXCss(ref, a);
+            const x2 = getMarkerXCss(ref, b);
+            const left = Math.min(x1, x2);
+            const width = Math.max(22, Math.abs(x2 - x1));
+            const band = document.createElement('div');
+            band.className = 'time-span-band';
+            band.style.left = `${left}px`;
+            band.style.top = `${Math.max(2, span.y ?? 30)}px`;
+            band.style.width = `${width}px`;
+            band.title = '上下拖动调整跨度标注位置；双击删除';
+            const label = document.createElement('div');
+            label.className = 'time-span-label';
+            label.textContent = formatDurationMMSS(durationSeconds(ref, a.rowIndex, b.rowIndex));
+            band.appendChild(label);
+            let dragging = false;
+            let offsetY = 0;
+            band.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                dragging = true;
+                const br = band.getBoundingClientRect();
+                offsetY = e.clientY - br.top;
+                try { band.setPointerCapture(e.pointerId); } catch (_) {}
+            });
+            band.addEventListener('pointermove', (e) => {
+                if (!dragging) return;
+                const wr = ref.tempWrapper.getBoundingClientRect();
+                span.y = Math.max(2, Math.min(combinedSpanMaxY(ref), e.clientY - wr.top - offsetY));
+                band.style.top = `${span.y}px`;
+            });
+            const finish = (e) => {
+                if (!dragging) return;
+                dragging = false;
+                try { band.releasePointerCapture(e.pointerId); } catch (_) {}
+            };
+            band.addEventListener('pointerup', finish);
+            band.addEventListener('pointercancel', finish);
+            band.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                window.sliceTimeSpans[sliceIndex] = (window.sliceTimeSpans[sliceIndex] || []).filter(item => item.id !== span.id);
+                renderMarkers(sliceIndex);
+            });
+            layer.appendChild(band);
+        });
+    }
+
+    function refreshTimeSpans(sliceIndex, ref) {
+        const layer = ref?.tempWrapper?.querySelector('.marker-layer');
+        if (!layer) return;
+        layer.querySelectorAll('.time-span-band').forEach(el => el.remove());
+        renderTimeSpans(ref, window.sliceMarkers[sliceIndex] || [], sliceIndex, layer);
+    }
+
+    function channelMeta(ref) {
+        const rows = [];
+        (ref.tempChart?.data?.datasets || []).forEach(ds => rows.push({ name: ds.label, color: ds.borderColor || ds.backgroundColor || '#58a6ff', unit: '℃' }));
+        if (ref.powerChart?.data?.datasets?.[0]) {
+            const ds = ref.powerChart.data.datasets[0];
+            rows.push({ name: '功率', key: '功率', color: ds.borderColor || '#ff4081', unit: 'W' });
+        }
+        return rows.map(item => ({ ...item, key: item.key || item.name }));
+    }
+
+    function integralAverage(ref, key, start, end) {
+        const vals = [];
+        for (let i = start; i <= end; i++) {
+            const v = Number(ref.seg[i]?.[key]);
+            if (Number.isFinite(v)) vals.push({ i, v, t: rowTimeSeconds(ref, i) });
+        }
+        if (!vals.length) return null;
+        if (vals.length === 1) return vals[0].v;
+        let area = 0;
+        let span = 0;
+        for (let i = 1; i < vals.length; i++) {
+            let dt = vals[i].t - vals[i - 1].t;
+            if (!Number.isFinite(dt) || dt <= 0) dt = vals[i].i - vals[i - 1].i;
+            area += (vals[i - 1].v + vals[i].v) / 2 * dt;
+            span += dt;
+        }
+        return span > 0 ? area / span : vals.reduce((sum, item) => sum + item.v, 0) / vals.length;
+    }
+
+    function buildStatsRows(sliceIndex) {
+        const ref = window.slideCanvases[sliceIndex];
+        if (!ref) return [];
+        const markers = window.sliceMarkers[sliceIndex] || [];
+        const ranges = window.sliceStatRanges[sliceIndex] || [];
+        const groups = [];
+        ranges.forEach(range => {
+            const a = markerById(markers, range.aId);
+            const b = markerById(markers, range.bId);
+            if (!a || !b) return;
+            const start = Math.min(a.rowIndex, b.rowIndex);
+            const end = Math.max(a.rowIndex, b.rowIndex);
+            const interval = `${circled(a.order)}-${circled(b.order)}`;
+            const rows = [];
+            channelMeta(ref).forEach(meta => {
+                const values = [];
+                for (let i = start; i <= end; i++) {
+                    const n = Number(ref.seg[i]?.[meta.key]);
+                    if (Number.isFinite(n)) values.push(n);
+                }
+                if (!values.length) return;
+                rows.push({
+                    interval,
+                    name: meta.name,
+                    color: meta.color,
+                    max: Math.max(...values),
+                    min: Math.min(...values),
+                    avg: integralAverage(ref, meta.key, start, end),
+                    unit: meta.unit
+                });
+            });
+            if (rows.length) groups.push({ interval, rows });
+        });
+        return groups;
+    }
+
+    function renderStatsPanel(sliceIndex) {
+        const panel = document.getElementById(`segment-stats-${sliceIndex}`);
+        if (!panel) return;
+        const groups = buildStatsRows(sliceIndex);
+        let rows = '';
+        groups.forEach(group => {
+            group.rows.forEach((row, idx) => {
+                rows += `<tr>${idx === 0 ? `<td rowspan="${group.rows.length}">${htmlEscape(group.interval)}</td>` : ''}<td><span class="channel-dot" style="background:${row.color}"></span>${htmlEscape(row.name)}</td><td>${fmt(row.max)}</td><td>${fmt(row.min)}</td><td>${fmt(row.avg)}</td><td>${htmlEscape(row.unit)}</td></tr>`;
+            });
+        });
+        panel.innerHTML = `<div class="segment-stats-title"><span>数据段统计</span><span>${groups.length ? `${groups.length} 个区间` : '未选择区间'}</span></div>` +
+            (rows ? `<table><thead><tr><th>数据区间</th><th>通道名称</th><th>最大值</th><th>最小值</th><th>积分平均值</th><th>单位</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="segment-stats-empty">页面左上角进行数据标记后显示。先点击图线添加①②虚线，再点“统计最大最小积分平均”并依次选择两条虚线。</div>');
+    }
+
+    function renderMarkers(sliceIndex) {
+        const ref = window.slideCanvases[sliceIndex];
+        if (!ref || !ref.tempWrapper) return;
+        const markers = window.sliceMarkers[sliceIndex] || [];
+        normalizeMarkerOrders(sliceIndex);
+        const { layer, svg } = ensureLayer(ref.tempWrapper);
+        markers.forEach(marker => {
+            const xCss = getMarkerXCss(ref, marker);
+            const line = document.createElement('div');
+            line.className = 'marker-vline';
+            line.style.left = `${xCss}px`;
+            line.title = '拖动虚线调整关键时刻；双击删除该标记';
+            layer.appendChild(line);
+
+            const label = document.createElement('div');
+            label.className = 'marker-label';
+            label.style.left = `${xCss}px`;
+            label.style.top = `${Math.max(0, marker.labelY ?? 4)}px`;
+            label.title = '上下拖动编号调整编号位置；左右拖动编号会同步移动虚线；双击删除该标记';
+            label.textContent = circled(marker.order);
+            layer.appendChild(label);
+
+            const box = document.createElement('div');
+            box.className = 'marker-box';
+            box.classList.toggle('time-wrap', shouldWrapMarkerTitle(marker, ref));
+            box.style.left = `${marker.boxX}px`;
+            box.style.top = `${marker.boxY}px`;
+            box.style.width = `${marker.boxW || 260}px`;
+            box.style.height = `${marker.boxH || 190}px`;
+            box.innerHTML = buildMarkerBoxRowsHTML(marker, ref);
+            refreshMarkerBoxContent(box, marker, ref);
+            box.dataset.markerIndex = String(markers.indexOf(marker));
+            layer.appendChild(box);
+            restoreMarkerBoxScroll(box, marker);
+
+            const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            arrow.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--marker-border').trim() || '#8b0000');
+            arrow.setAttribute('stroke-width', '1.6');
+            arrow.setAttribute('stroke-dasharray', '4 3');
+            svg.appendChild(arrow);
+            updateArrow(arrow, box, marker, xCss);
+            enableDrag(box, marker, ref, arrow, () => getMarkerXCss(ref, marker));
+            enableBoxResize(box, marker, ref, arrow, () => getMarkerXCss(ref, marker));
+            enableLineXDrag(line, marker, sliceIndex, ref, line, label, box, arrow);
+            enableLabelXYDrag(label, marker, sliceIndex, ref, line, box, arrow);
+            enableBoxScrollSnap(box, marker);
+            line.addEventListener('click', (e) => { if (selectMarkerForTool(sliceIndex, marker)) e.stopPropagation(); });
+            label.addEventListener('click', (e) => { if (selectMarkerForTool(sliceIndex, marker)) e.stopPropagation(); });
+            box.addEventListener('click', (e) => { if (selectMarkerForTool(sliceIndex, marker)) e.stopPropagation(); });
+        });
+        renderTimeSpans(ref, markers, sliceIndex, layer);
+        renderPowerLines(ref, markers, sliceIndex);
+        renderStatsPanel(sliceIndex);
+    }
+
+    function updateArrow(arrow, box, marker, xCss) {
+        const w = box.offsetWidth || marker.boxW || 260;
+        const h = box.offsetHeight || marker.boxH || 190;
+        const left = marker.boxX;
+        const top = marker.boxY;
+        const boxCenterX = left + w / 2;
+        const startX = boxCenterX < xCss ? left + w : left;
+        const startY = top + Math.min(34, h / 2);
+        arrow.setAttribute('x1', String(startX));
+        arrow.setAttribute('y1', String(startY));
+        arrow.setAttribute('x2', String(xCss));
+        arrow.setAttribute('y2', String((marker.labelY ?? 4) + 12));
+    }
+
+    function enableDrag(box, marker, ref, arrow, getX) {
+        let dragging = false, dx = 0, dy = 0;
+        box.addEventListener('pointerdown', (e) => {
+            const rect = box.getBoundingClientRect();
+            const nearResizeCorner = e.clientX > rect.right - 38 && e.clientY > rect.bottom - 38;
+            if (nearResizeCorner) return;
+            e.stopPropagation(); dragging = true;
+            dx = e.clientX - rect.left; dy = e.clientY - rect.top;
+            box.setPointerCapture(e.pointerId);
+        });
+        box.addEventListener('pointermove', (e) => {
+            if (!dragging) return;
+            const wr = ref.tempWrapper.getBoundingClientRect();
+            const maxX = Math.max(4, wr.width - box.offsetWidth - 4);
+            const maxY = Math.max(4, wr.height - box.offsetHeight - 4);
+            marker.boxX = Math.max(4, Math.min(maxX, e.clientX - wr.left - dx));
+            marker.boxY = Math.max(4, Math.min(maxY, e.clientY - wr.top - dy));
+            box.style.left = `${marker.boxX}px`;
+            box.style.top = `${marker.boxY}px`;
+            updateArrow(arrow, box, marker, getX());
+        });
+        const end = (e) => { if (!dragging) return; dragging = false; saveMarkers(); try { box.releasePointerCapture(e.pointerId); } catch (_) {} };
+        box.addEventListener('pointerup', end);
+        box.addEventListener('pointercancel', end);
+        box.addEventListener('click', e => e.stopPropagation());
+    }
+
+    function openPPTModal() {
+        const existingConfig = localStorage.getItem('cmd_PPT_txt');
+        if (existingConfig) document.getElementById('pptTemplateText').value = existingConfig;
+        else document.getElementById('pptTemplateText').value = "分析标记序号之间的温度变化，以及时间跨度";
+        document.getElementById('pptConfigModal').style.display = 'flex';
+    }
+    function closePPTModal() { document.getElementById('pptConfigModal').style.display = 'none'; }
+    function readConfigFile(event) {
+        const file = event.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => { document.getElementById('pptTemplateText').value = e.target.result; };
+        reader.readAsText(file); event.target.value = '';
+    }
+
+    function drawRoundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+    }
+
+    function drawFitText(ctx, text, x, y, maxWidth) {
+        const str = String(text ?? '');
+        if (ctx.measureText(str).width <= maxWidth) { ctx.fillText(str, x, y); return; }
+        let lo = 0, hi = str.length;
+        while (lo < hi) {
+            const mid = Math.ceil((lo + hi) / 2);
+            if (ctx.measureText(str.slice(0, mid) + '…').width <= maxWidth) lo = mid;
+            else hi = mid - 1;
+        }
+        ctx.fillText(str.slice(0, lo) + '…', x, y);
+    }
+
+    function drawMarkerAnnotations(ctx, ref, tHeight, pOffset) {
+        const markers = window.sliceMarkers[window.slideCanvases.indexOf(ref)] || [];
+        const border = '#8b0000';
+        markers.forEach(marker => {
+            const info = markerValues(ref.seg, marker.rowIndex, ref.timeKey);
+            const scaleX = ref.temp.width / Math.max(1, ref.tempWrapper.clientWidth);
+            const scaleY = ref.temp.height / Math.max(1, ref.tempWrapper.clientHeight);
+            const x = ref.tempChart.scales.x.getPixelForValue(marker.rowIndex) * scaleX;
+            const labelY = Math.max(0, marker.labelY ?? 4) * scaleY;
+            const labelCy = labelY + 12 * scaleY;
+            ctx.save();
+            ctx.strokeStyle = border; ctx.lineWidth = 2; ctx.setLineDash([8,6]);
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, tHeight); ctx.stroke();
+            if (ref.hasPower && ref.powerChart) {
+                const pScaleX = ref.power.width / Math.max(1, ref.powerWrapper.clientWidth);
+                const pX = ref.powerChart.scales.x.getPixelForValue(marker.rowIndex) * pScaleX;
+                ctx.beginPath(); ctx.moveTo(pX, pOffset); ctx.lineTo(pX, pOffset + ref.power.height); ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            ctx.fillStyle = border; ctx.beginPath(); ctx.arc(x, labelCy, Math.max(12, 12 * scaleY), 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = `bold ${Math.max(16, 18 * scaleY)}px Segoe UI, Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(circled(marker.order), x, labelCy);
+
+            const boxW = Math.max(210 * scaleX, (marker.boxW || 260) * scaleX);
+            const boxH = Math.max(96 * scaleY, (marker.boxH || 190) * scaleY);
+            let bx = Math.max(6, Math.min(ref.temp.width - boxW - 6, marker.boxX * scaleX));
+            let by = Math.max(6, Math.min(ref.temp.height - boxH - 6, marker.boxY * scaleY));
+            const cssTitleH = markerTitleHeight(marker, ref);
+            const titleH = cssTitleH * scaleY;
+            const rowH = MARKER_ROW_H * scaleY;
+            const padX = 10 * scaleX;
+            const entries = Object.entries(info.values);
+            const startRow = Math.max(0, Math.round((marker.boxScroll || 0) / MARKER_ROW_H));
+            const visibleRows = Math.max(1, Math.floor((boxH - titleH - 8 * scaleY) / rowH));
+            const rows = entries.slice(startRow, startRow + visibleRows);
+
+            ctx.strokeStyle = border; ctx.lineWidth = 1.5;
+            ctx.fillStyle = document.documentElement.getAttribute('data-theme') === 'light' ? 'rgba(255,255,255,0.84)' : 'rgba(22,27,34,0.84)';
+            drawRoundRect(ctx, bx, by, boxW, boxH, 10); ctx.fill(); ctx.stroke();
+            ctx.save();
+            drawRoundRect(ctx, bx, by, boxW, boxH, 10); ctx.clip();
+            ctx.fillStyle = document.documentElement.getAttribute('data-theme') === 'light' ? 'rgba(255,255,255,0.94)' : 'rgba(22,27,34,0.94)';
+            ctx.fillRect(bx, by, boxW, titleH);
+            ctx.strokeStyle = border; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(bx, by + titleH); ctx.lineTo(bx + boxW, by + titleH); ctx.stroke();
+            ctx.fillStyle = border; ctx.font = `bold ${Math.max(13, 15 * scaleY)}px Segoe UI, Arial`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+            if (shouldWrapMarkerTitle(marker, ref)) {
+                const parts = markerTimeParts(info.time);
+                drawFitText(ctx, `${circled(marker.order)} ${parts.main}`, bx + padX, by + titleH * 0.34, boxW - 2 * padX);
+                drawFitText(ctx, parts.sub, bx + padX, by + titleH * 0.72, boxW - 2 * padX);
+            } else {
+                drawFitText(ctx, `${circled(marker.order)} 时间：${info.time ?? ''}`, bx + padX, by + titleH / 2, boxW - 2 * padX);
+            }
+            ctx.font = `${Math.max(11, 13 * scaleY)}px Consolas, monospace`;
+            const textColor = document.documentElement.getAttribute('data-theme') === 'light' ? '#24292f' : '#c9d1d9';
+            const muted = document.documentElement.getAttribute('data-theme') === 'light' ? '#57606a' : '#8b949e';
+            rows.forEach(([k, v], i) => {
+                const ry = by + titleH + i * rowH;
+                ctx.strokeStyle = 'rgba(128,128,128,0.25)'; ctx.beginPath(); ctx.moveTo(bx + padX, ry + rowH); ctx.lineTo(bx + boxW - padX, ry + rowH); ctx.stroke();
+                ctx.fillStyle = textColor; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                drawFitText(ctx, k, bx + padX, ry + rowH / 2, boxW * 0.55 - padX);
+                ctx.fillStyle = muted; ctx.textAlign = 'right';
+                drawFitText(ctx, fmt(v), bx + boxW - padX, ry + rowH / 2, boxW * 0.38);
+            });
+            ctx.restore();
+            ctx.strokeStyle = border; ctx.setLineDash([5,4]); ctx.beginPath(); ctx.moveTo(bx < x ? bx + boxW : bx, by + Math.min(titleH, boxH / 2)); ctx.lineTo(x, labelCy); ctx.stroke();
+            ctx.restore();
+        });
+    }
+
+    function waitForFrames(count = 2) {
+        return new Promise(resolve => {
+            const step = () => (--count <= 0 ? resolve() : requestAnimationFrame(step));
+            requestAnimationFrame(step);
+        });
+    }
+
+    function drawTimeSpanAnnotations(ctx, ref) {
+        const sliceIndex = window.slideCanvases.indexOf(ref);
+        const spans = window.sliceTimeSpans[sliceIndex] || [];
+        const markers = window.sliceMarkers[sliceIndex] || [];
+        if (!spans.length) return;
+        const scaleX = ref.temp.width / Math.max(1, ref.tempWrapper.clientWidth);
+        const scaleY = ref.temp.height / Math.max(1, ref.tempWrapper.clientHeight);
+        ctx.save();
+        ctx.strokeStyle = '#9a6700';
+        ctx.fillStyle = '#9a6700';
+        ctx.lineWidth = 2;
+        ctx.font = `bold ${Math.max(12, 14 * scaleY)}px Consolas, monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        spans.forEach(span => {
+            const a = markerById(markers, span.aId);
+            const b = markerById(markers, span.bId);
+            if (!a || !b) return;
+            const x1 = ref.tempChart.scales.x.getPixelForValue(a.rowIndex) * scaleX;
+            const x2 = ref.tempChart.scales.x.getPixelForValue(b.rowIndex) * scaleX;
+            const y = Math.max(8, spanCssYToCanvasY(ref, span.y ?? 30, ref.hasPower ? ref.temp.height + 20 : 0) + 10 * scaleY);
+            ctx.beginPath();
+            ctx.moveTo(Math.min(x1, x2), y);
+            ctx.lineTo(Math.max(x1, x2), y);
+            ctx.stroke();
+            const text = formatDurationMMSS(durationSeconds(ref, a.rowIndex, b.rowIndex));
+            const mid = (x1 + x2) / 2;
+            const w = Math.max(70, ctx.measureText(text).width + 14);
+            ctx.fillStyle = document.documentElement.getAttribute('data-theme') === 'light' ? 'rgba(255,255,255,0.92)' : 'rgba(22,27,34,0.92)';
+            drawRoundRect(ctx, mid - w / 2, y - 12, w, 24, 12);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = '#9a6700';
+            ctx.fillText(text, mid, y);
+        });
+        ctx.restore();
+    }
+
+    async function prepareSliceForCapture(index) {
+        const ref = window.slideCanvases[index];
+        if (!ref) return;
+        restoreSliceViewState(index);
+        ref.tempChart?.resize();
+        ref.powerChart?.resize();
+        ref.tempChart?.update('none');
+        ref.powerChart?.update('none');
+        renderMarkers(index);
+        await waitForFrames(2);
+    }
+
+    async function generateChartBase64(index) {
+        await prepareSliceForCapture(index);
+        const ref = window.slideCanvases[index];
+        const masterCanvas = document.createElement('canvas');
+        const tWidth = ref.temp.width;
+        const tHeight = ref.temp.height;
+        const pHeight = ref.hasPower ? ref.power.height : 0;
+        const pOffset = tHeight + (ref.hasPower ? 20 : 0);
+        masterCanvas.width = tWidth;
+        masterCanvas.height = tHeight + (ref.hasPower ? pHeight + 20 : 0);
+        const mCtx = masterCanvas.getContext('2d');
+        mCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--panel').trim();
+        mCtx.fillRect(0, 0, masterCanvas.width, masterCanvas.height);
+        mCtx.drawImage(ref.temp, 0, 0);
+        if (ref.hasPower) mCtx.drawImage(ref.power, 0, pOffset);
+        drawMarkerAnnotations(mCtx, ref, tHeight, pOffset);
+        drawTimeSpanAnnotations(mCtx, ref);
+        return { img: masterCanvas.toDataURL('image/png', 1.0), hasPower: ref.hasPower, width: masterCanvas.width, height: masterCanvas.height };
+    }
+
+    function buildMarkerSummary() {
+        let text = '';
+        window.sliceMarkers.forEach((markers, idx) => {
+            if (!markers || !markers.length) return;
+            const ref = window.slideCanvases[idx];
+            text += `\n[切片 Sheet ${idx + 1} 关键标记]:\n`;
+            markers.forEach(marker => {
+                const info = markerValues(ref.seg, marker.rowIndex, ref.timeKey);
+                const vals = Object.entries(info.values).map(([k, v]) => `${k}=${fmt(v)}`).join('，');
+                text += ` - ${circled(marker.order)} 时间=${info.time}，${vals}\n`;
+            });
+        });
+        return text || '\n[关键标记]: 未添加人工标记。\n';
+    }
+
+
+    function sanitizePptText(input) {
+        const raw = String(input ?? '');
+        let out = '';
+        for (let i = 0; i < raw.length; i++) {
+            const code = raw.charCodeAt(i);
+            if (code >= 0xD800 && code <= 0xDBFF) {
+                const next = raw.charCodeAt(i + 1);
+                if (next >= 0xDC00 && next <= 0xDFFF) {
+                    out += raw[i] + raw[i + 1];
+                    i++;
+                }
+                continue;
+            }
+            if (code >= 0xDC00 && code <= 0xDFFF) continue;
+            if ((code >= 0x00 && code <= 0x08) || code === 0x0B || code === 0x0C || (code >= 0x0E && code <= 0x1F) || code === 0x7F) {
+                out += ' ';
+                continue;
+            }
+            out += raw[i];
+        }
+        return out.replace(/\u2028|\u2029/g, '\n');
+    }
+
+    function cleanMdText(text) {
+        return sanitizePptText(String(text || '')
+            .replace(/^[-*_]{3,}\s*$/gm, '')
+            .replace(/`{1,3}/g, '')
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/__(.*?)__/g, '$1')
+            .replace(/^\s*[#]+\s*/gm, '')
+            .trim());
+    }
+
+    function parseMarkdownBlocks(text) {
+        const lines = String(text || '').split(/\r?\n/);
+        const blocks = [];
+        let para = [];
+        const flushPara = () => {
+            if (para.length) {
+                blocks.push({ type: 'paragraph', text: cleanMdText(para.join('\n')) });
+                para = [];
+            }
+        };
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const trimmed = line.trim();
+            if (!trimmed) { flushPara(); continue; }
+            if (/^\|.+\|$/.test(trimmed) && i + 1 < lines.length && /^\|?\s*:?-{3,}:?/.test(lines[i + 1].trim())) {
+                flushPara();
+                const tableLines = [trimmed];
+                i += 2;
+                while (i < lines.length && /^\|.+\|$/.test(lines[i].trim())) { tableLines.push(lines[i].trim()); i++; }
+                i--;
+                const rows = tableLines.map(row => row.replace(/^\||\|$/g, '').split('|').map(cell => cleanMdText(cell.trim()))).filter(r => r.some(Boolean));
+                if (rows.length) blocks.push({ type: 'table', rows });
+                continue;
+            }
+            const h = trimmed.match(/^(#{1,4})\s+(.+)$/);
+            if (h) { flushPara(); blocks.push({ type: 'heading', level: h[1].length, text: cleanMdText(h[2]) }); continue; }
+            const bullet = trimmed.match(/^[-*]\s+(.+)$/) || trimmed.match(/^\d+[.、]\s+(.+)$/);
+            if (bullet) { flushPara(); blocks.push({ type: 'bullet', text: cleanMdText(bullet[1]) }); continue; }
+            para.push(trimmed);
+        }
+        flushPara();
+        return blocks.filter(b => b.type !== 'paragraph' || b.text);
+    }
+
+    function addStructuredAnalysisSlides(pptx, analysisText) {
+        const blocks = parseMarkdownBlocks(analysisText);
+        const safeText = (value) => sanitizePptText(value);
+        const marginX = 0.45;
+        const contentW = 9.1;
+        let slide;
+        let page = 0;
+        let y = 0;
+        const newSlide = () => {
+            slide = pptx.addSlide();
+            page += 1;
+            y = 0.28;
+            slide.addText(`大模型诊断结论 ${page > 1 ? '(续)' : ''}`, { x: marginX, y, w: contentW, h: 0.35, fontSize: 20, bold: true, color: '003366' });
+            y += 0.5;
+        };
+        const ensureSpace = (h) => { if (!slide || y + h > 5.45) newSlide(); };
+        blocks.forEach(block => {
+            if (block.type === 'heading') {
+                ensureSpace(0.45);
+                slide.addText(safeText(block.text), { x: marginX, y, w: contentW, h: 0.35, fontSize: block.level <= 2 ? 16 : 14, bold: true, color: '003366' });
+                y += 0.42;
+            } else if (block.type === 'bullet') {
+                ensureSpace(0.35);
+                slide.addText(safeText(block.text), { x: marginX + 0.18, y, w: contentW - 0.2, h: 0.28, fontSize: 11, color: '333333', bullet: { type: 'bullet' }, fit: 'shrink' });
+                y += 0.31;
+            } else if (block.type === 'table') {
+                const rows = block.rows.slice(0, 12);
+                const cols = Math.max(1, Math.max(...rows.map(r => r.length)));
+                const rowH = cols >= 6 ? 0.26 : 0.3;
+                const h = Math.max(0.45, rows.length * rowH + 0.08);
+                ensureSpace(h + 0.1);
+                const normalizedRows = rows.map((r, ri) => Array.from({ length: cols }, (_, ci) => ({
+                    text: safeText(r[ci] || ''),
+                    options: {
+                        bold: ri === 0,
+                        color: ri === 0 ? 'FFFFFF' : '333333',
+                        fill: ri === 0 ? { color: '2F5597' } : { color: ri % 2 ? 'F7F9FC' : 'FFFFFF' },
+                        margin: 0.04,
+                        valign: 'mid'
+                    }
+                })));
+                const colW = Array.from({ length: cols }, () => contentW / cols);
+                slide.addTable(normalizedRows, { x: marginX, y, w: contentW, h, colW, fontSize: cols >= 6 ? 6.5 : 8, border: { type: 'solid', color: 'D9E2F3', pt: 0.5 } });
+                y += h + 0.16;
+            } else {
+                const text = safeText(block.text);
+                const estimatedLines = Math.max(1, Math.ceil(text.length / 56));
+                const h = Math.min(1.0, Math.max(0.32, estimatedLines * 0.22));
+                ensureSpace(h + 0.04);
+                slide.addText(text, { x: marginX, y, w: contentW, h, fontSize: 11, color: '333333', fit: 'shrink' });
+                y += h + 0.08;
+            }
+        });
+        if (!slide) {
+            newSlide();
+            slide.addText('未生成有效诊断文本。', { x: marginX, y, w: contentW, h: 0.4, fontSize: 12, color: '333333' });
+        }
+    }
+
+    function addStatsTableToSlide(slide, sliceIndex, x, y, w, h) {
+        const groups = buildStatsRows(sliceIndex);
+        if (!groups.length) return false;
+        const rows = [[
+            { text: '数据区间', options: { bold: true, color: 'FFFFFF', fill: { color: '2F5597' } } },
+            { text: '通道名称', options: { bold: true, color: 'FFFFFF', fill: { color: '2F5597' } } },
+            { text: '最大值', options: { bold: true, color: 'FFFFFF', fill: { color: '2F5597' } } },
+            { text: '最小值', options: { bold: true, color: 'FFFFFF', fill: { color: '2F5597' } } },
+            { text: '积分平均', options: { bold: true, color: 'FFFFFF', fill: { color: '2F5597' } } },
+            { text: '单位', options: { bold: true, color: 'FFFFFF', fill: { color: '2F5597' } } }
+        ]];
+        groups.forEach(group => {
+            group.rows.forEach((row, idx) => {
+                rows.push([
+                    idx === 0 ? group.interval : '',
+                    row.name,
+                    fmt(row.max),
+                    fmt(row.min),
+                    fmt(row.avg),
+                    row.unit
+                ]);
+            });
+        });
+        const maxRows = Math.min(rows.length, 20);
+        const clipped = rows.slice(0, maxRows);
+        slide.addText('数据段统计', { x, y, w, h: 0.22, fontSize: 9, bold: true, color: '003366' });
+        slide.addTable(clipped, {
+            x,
+            y: y + 0.26,
+            w,
+            h: Math.min(h - 0.28, Math.max(0.5, clipped.length * 0.18)),
+            colW: [0.55, 0.78, 0.48, 0.48, 0.62, 0.32],
+            fontSize: 5.4,
+            margin: 0.02,
+            border: { type: 'solid', color: 'D9E2F3', pt: 0.4 },
+            color: '333333',
+            valign: 'mid'
+        });
+        return true;
+    }
+
+    function emitCloudTask(title, status, detail, type = 'report') {
+        try {
+            const tasks = JSON.parse(localStorage.getItem('opc_supervisor_tasks_v1') || '[]');
+            const id = `cloud_${type}_${title}`;
+            const existing = tasks.find(t => t.id === id);
+            const task = existing || {
+                id,
+                ts: Date.now(),
+                title,
+                type,
+                agent: '分析与报告Agent',
+                maxRetries: 2,
+                history: []
+            };
+            task.updatedAt = Date.now();
+            task.status = status;
+            task.detail = detail || '';
+            task.history = (task.history || []).concat([{ ts: Date.now(), status, detail: detail || '' }]).slice(-8);
+            task.attempt = task.attempt || 0;
+            if (!existing) tasks.unshift(task);
+            localStorage.setItem('opc_supervisor_tasks_v1', JSON.stringify(tasks.slice(0, 80)));
+        } catch (_) {}
+    }
+
+    async function fetchWithCloudRetry(title, requestFactory, maxRetries = 2) {
+        let lastError = null;
+        for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+            emitCloudTask(title, '运行中', `第 ${attempt} 次尝试`);
+            try {
+                const response = await requestFactory();
+                if (!response.ok && response.status !== 401 && response.status !== 403) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                emitCloudTask(title, '完成', 'LLM分析请求完成');
+                return response;
+            } catch (error) {
+                lastError = error;
+                emitCloudTask(title, attempt > maxRetries ? '失败' : '重试中', error.message || String(error));
+                emitIndexLog('分析与报告Agent', `LLM报告生成第 ${attempt} 次请求失败：${error.message || error}`, attempt > maxRetries ? 'error' : 'normal', 'REPORT_RETRY');
+                if (attempt <= maxRetries) await new Promise(resolve => setTimeout(resolve, 450 * attempt));
+            }
+        }
+        throw lastError;
+    }
+
+    async function generatePPT() {
+        const apiKey = localStorage.getItem('opc_api_key');
+        if (!apiKey) { alert('🚨 请先在主控台右上角输入 DeepSeek API Key！'); return; }
+        const btn = document.getElementById('btnConfirmPPT');
+        btn.innerText = '⏳ 正在联合大模型分析并生成报告...'; btn.disabled = true;
+        persistActiveMarkerDomState();
+        emitIndexLog('分析与报告Agent', '云端 Sheet 已触发 PPTX 生成，开始读取标记点与分析偏好。', 'normal', 'REPORT_GEN');
+        emitCloudTask('云端Sheet生成PPTX报告', '运行中', '读取标记点与分析偏好');
+        const configText = document.getElementById('pptTemplateText').value.trim();
+        localStorage.setItem('cmd_PPT_txt', configText);
+        let dataSummary = '提取的感兴趣数据段特征概览：\n';
+        globalSegments.forEach((seg, idx) => {
+            const keys = Object.keys(seg[0]).filter(k => !['时间','绝对时间','相对时间','Time'].includes(k));
+            dataSummary += `\n[切片 Sheet ${idx + 1}]:\n`;
+            keys.forEach(k => {
+                const vals = seg.map(row => row[k]).filter(v => v !== null && !isNaN(v));
+                if (vals.length > 0) dataSummary += ` - 通道 [${k}]：最高值 ${Math.max(...vals).toFixed(1)}，最低值 ${Math.min(...vals).toFixed(1)}\n`;
+            });
+        });
+        const markerSummary = buildMarkerSummary();
+        try {
+            const response = await fetchWithCloudRetry('云端Sheet生成PPTX报告', () => fetch('https://api.deepseek.com/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'user', content: `你是一位资深制冷设备分析专家。请基于以下数据输出核心诊断内容，不要写‘根据提供的数据’这类开场白，不要用Markdown代码块。可以使用标题、短句、项目符号和Markdown表格；表格会被程序转换成PPT内的真实表格。请重点结合用户在曲线上添加的①②③等关键标记；如果用户要求中提到“①处/②处”，必须使用对应标记时刻的数据进行分析。\n${dataSummary}\n${markerSummary}\n用户要求：${configText}` }] }) }));
+            const result = await response.json();
+            emitTokenUsage('云端Sheet生成PPTX报告 DeepSeek 通讯完成', result.usage);
+            const analysisText = sanitizePptText(result.choices[0].message.content);
+            let pptx = new PptxGenJS();
+            window._pptOriginalActiveIndex = Math.max(0, Array.from(document.querySelectorAll('.tab-btn')).findIndex(btn => btn.classList.contains('active')));
+            let slideTitle = pptx.addSlide();
+            slideTitle.addText('⬡ Ice-Harness 数据穿刺诊断报告', { x: 0.5, y: 1.5, w: '90%', h: 1.5, fontSize: 36, bold: true, color: '003366', align: 'center' });
+            for (let i = 0; i < globalSegments.length; i++) {
+                switchTab(i);
+                await new Promise(resolve => setTimeout(resolve, 80));
+                let res = await generateChartBase64(i);
+                let slideChart = pptx.addSlide();
+                slideChart.addText(`切片 Sheet ${i + 1} - 感兴趣特征可视化`, { x: 0.5, y: 0.3, w: '90%', h: 0.5, fontSize: 20, bold: true, color: '003366' });
+                const hasStats = buildStatsRows(i).length > 0;
+                const maxW = hasStats ? 6.25 : 9.0, maxH = 4.65;
+                const aspect = res.width / Math.max(1, res.height);
+                let imgW = maxW, imgH = imgW / aspect;
+                if (imgH > maxH) { imgH = maxH; imgW = imgH * aspect; }
+                slideChart.addImage({ data: res.img, x: 0.45 + (maxW - imgW) / 2, y: 0.9, w: imgW, h: imgH });
+                if (hasStats) addStatsTableToSlide(slideChart, i, 6.9, 0.92, 3.0, 4.55);
+            }
+            const originalActive = window._pptOriginalActiveIndex ?? 0;
+            switchTab(originalActive);
+            addStructuredAnalysisSlides(pptx, analysisText);
+            saveMarkers();
+            const pptName = `Ice_Harness_Report_${new Date().getTime()}.pptx`;
+            await pptx.writeFile({ fileName: pptName, compression: true });
+            emitCloudTask('云端Sheet生成PPTX报告', '完成', pptName);
+            emitIndexLog('分析与报告Agent', `云端 Sheet 已生成 PPTX 报告：${pptName}`, 'success', 'REPORT_GEN');
+            closePPTModal();
+        } catch (error) {
+            emitCloudTask('云端Sheet生成PPTX报告', '失败', error.message || String(error));
+            emitIndexLog('分析与报告Agent', `云端 Sheet 生成 PPTX 失败：${error.message}`, 'error', 'REPORT_GEN');
+            alert(`生成失败: ${error.message}`);
+        } finally {
+            btn.innerText = '✔️ 确认指令并生成 PPTX'; btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
