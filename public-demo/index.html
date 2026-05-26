@@ -140,13 +140,11 @@
         .agent-health-grid { display: grid; grid-template-columns: repeat(6, minmax(118px, 1fr)); gap: 6px; overflow: visible; align-items: stretch; }
         .health-item { border: 1px solid var(--border); border-left-width: 4px; border-radius: 7px; padding: 5px 7px; background: var(--panel-strong); min-width: 0; }
         .health-item.ok { border-left-color: var(--accent-green); }
-        .health-item.busy { border-left-color: var(--accent-blue); }
-        .health-item.warn { border-left-color: var(--accent-yellow); }
+        .health-item.busy { border-left-color: var(--accent-yellow); }
         .health-item.bad { border-left-color: var(--accent-red); }
         .health-top { display: flex; justify-content: space-between; gap: 6px; font-size: 0.68rem; font-weight: 700; }
         .health-top b { white-space: nowrap; color: var(--accent-blue); }
-        .health-item.busy .health-top b { color: var(--accent-blue); }
-        .health-item.warn .health-top b { color: var(--accent-yellow); }
+        .health-item.busy .health-top b { color: var(--accent-yellow); }
         .health-item.bad .health-top b { color: var(--accent-red); }
         .health-detail { margin-top: 2px; color: var(--text-main); font-size: 0.66rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .health-foot { margin-top: 2px; color: var(--text-muted); font-size: 0.62rem; white-space: nowrap; }
@@ -199,71 +197,9 @@
         .api-key-hint strong { display:block; color:var(--accent-yellow); font-size:0.96rem; margin-top:7px; }
         .api-key-hint p { margin:0; color:var(--text-muted); font-size:0.84rem; line-height:1.5; }
         .api-key-hint button { margin-top:10px; padding:5px 10px; }
-        .showcase-hero { padding:16px 20px 12px; background:radial-gradient(circle at 12% 0%, rgba(9,105,218,0.18), transparent 34%), linear-gradient(135deg, var(--panel-bg), var(--panel-strong)); border-bottom:1px solid var(--border); display:grid; grid-template-columns:minmax(280px,0.9fr) minmax(360px,1.2fr) auto; gap:16px; align-items:center; }
-        .hero-kicker { color:var(--accent-green); font-size:0.72rem; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:4px; }
-        .hero-title { margin:0; color:var(--accent-blue); font-size:1.72rem; line-height:1.05; font-weight:900; }
-        .hero-subtitle { margin:5px 0 0; color:var(--text-main); font-size:0.96rem; font-weight:800; }
-        .hero-desc { margin:6px 0 0; color:var(--text-muted); font-size:0.78rem; line-height:1.45; max-width:720px; }
-        .hero-command { display:flex; gap:8px; align-items:center; min-width:0; }
-        .hero-command input { min-height:34px; font-size:0.9rem; }
-        .hero-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
-        .primary-hero { background:linear-gradient(135deg, #0969da, #1a7f37); color:#fff; border:0; box-shadow:0 10px 24px rgba(9,105,218,0.24); }
-        .system-badges { display:flex; gap:8px; flex-wrap:wrap; padding:8px 20px; background:var(--panel-bg); border-bottom:1px solid var(--border); }
-        .status-badge { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:999px; padding:5px 10px; font-size:0.74rem; font-weight:800; color:var(--text-muted); background:var(--panel-strong); }
-        .status-badge.ok { color:var(--accent-green); border-color:rgba(63,185,80,0.38); }
-        .status-badge.busy { color:var(--accent-blue); border-color:rgba(88,166,255,0.42); }
-        .status-badge.warn { color:var(--accent-yellow); border-color:rgba(210,153,34,0.42); }
-        .status-badge.bad { color:var(--accent-red); border-color:rgba(248,81,73,0.42); }
-        .more-actions { position:relative; }
-        .more-actions summary { list-style:none; }
-        .more-actions summary::-webkit-details-marker { display:none; }
-        .more-actions-panel { position:absolute; right:0; top:calc(100% + 8px); min-width:280px; z-index:2300; display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:10px; border:1px solid var(--border); border-radius:12px; background:var(--tooltip-bg); box-shadow:0 16px 38px var(--toolbar-shadow); backdrop-filter:blur(10px); }
-        .more-actions-panel input, .more-actions-panel select { grid-column:1 / -1; }
-        .supervisor-panel { grid-template-columns:minmax(0,1fr) minmax(300px,360px); padding:12px 16px; gap:12px; }
-        .supervisor-actions { display:none; }
-        .agent-health-grid { grid-template-columns:repeat(5, minmax(150px,1fr)); gap:10px; }
-        .health-item { border-radius:14px; padding:10px 12px; box-shadow:0 8px 22px rgba(0,0,0,0.06); }
-        .health-top { font-size:0.78rem; }
-        .health-detail { white-space:normal; min-height:30px; font-size:0.72rem; line-height:1.35; }
-        .health-foot { font-size:0.66rem; }
-        .main-content { padding:16px; gap:16px; }
-        .sidebar { width:220px; border-radius:16px; }
-        .sidebar-header { text-align:left; padding:12px 14px; }
-        .channel-group { border:1px solid var(--border); border-radius:12px; padding:8px; background:var(--panel-strong); }
-        .channel-group-title { display:flex; justify-content:space-between; align-items:center; color:var(--accent-blue); font-size:0.72rem; font-weight:900; margin-bottom:6px; }
-        .channel-quick-actions { display:flex; gap:6px; padding:10px; border-bottom:1px solid var(--border); }
-        .channel-quick-actions button { flex:1; padding:5px 6px; font-size:0.68rem; }
-        .channel-toggle { border:1px solid transparent; border-radius:8px; padding:4px 5px; }
-        .channel-toggle.anomaly-channel { border-color:rgba(248,81,73,0.55); background:rgba(248,81,73,0.08); }
-        .channel-badge { margin-left:auto; color:var(--accent-red); font-size:0.64rem; font-weight:900; }
-        .chart-panel, .dashboard-panel { border-radius:18px; box-shadow:0 10px 28px rgba(0,0,0,0.08); }
-        .ai-decision-card { margin:12px 12px 0; padding:12px; border:1px solid rgba(88,166,255,0.28); border-radius:14px; background:linear-gradient(135deg, rgba(88,166,255,0.10), rgba(63,185,80,0.07)); display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
-        .decision-title { grid-column:1 / -1; color:var(--accent-blue); font-weight:900; font-size:0.86rem; }
-        .decision-item b { display:block; font-size:0.68rem; color:var(--text-muted); margin-bottom:3px; }
-        .decision-item span { color:var(--text-main); font-weight:800; font-size:0.78rem; }
-        .anomaly-floating-card { display:none; position:absolute; top:86px; right:18px; z-index:18; max-width:220px; border:1px solid rgba(248,81,73,0.65); border-radius:14px; background:rgba(248,81,73,0.12); color:var(--text-main); padding:10px; box-shadow:0 12px 32px var(--toolbar-shadow); backdrop-filter:blur(8px); font-size:0.74rem; line-height:1.45; }
-        .anomaly-floating-card.active { display:block; }
-        .anomaly-floating-card strong { display:block; color:var(--accent-red); font-size:0.86rem; margin-bottom:4px; }
-        .console { gap:10px; font-family:inherit; }
-        .event-card { border:1px solid var(--border); border-left-width:5px; border-radius:14px; padding:10px; background:var(--panel-bg); box-shadow:0 8px 22px rgba(0,0,0,0.06); }
-        .event-card.severe { border-left-color:var(--accent-red); }
-        .event-card.warn { border-left-color:var(--accent-yellow); }
-        .event-card.ai { border-left-color:var(--accent-blue); }
-        .event-card.done { border-left-color:var(--accent-green); }
-        .event-card.info { border-left-color:var(--text-muted); }
-        .event-top { display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:5px; }
-        .event-type { font-size:0.64rem; font-weight:900; letter-spacing:0.04em; color:var(--text-muted); }
-        .event-time { font-size:0.64rem; color:var(--text-muted); white-space:nowrap; }
-        .event-title { font-weight:900; color:var(--text-main); font-size:0.82rem; margin-bottom:4px; }
-        .event-agent { color:var(--accent-blue); font-size:0.7rem; font-weight:800; margin-bottom:4px; }
-        .event-desc { color:var(--text-muted); font-size:0.72rem; line-height:1.4; }
-        .event-action { margin-top:8px; padding:4px 8px; font-size:0.66rem; }
         @media (max-width: 720px) {
             body { overflow:auto; height:auto; min-height:100vh; }
             .main-content { min-height:620px; }
-            .showcase-hero { grid-template-columns:1fr; }
-            .agent-health-grid { grid-template-columns:1fr; }
-            .ai-decision-card { grid-template-columns:1fr 1fr; }
         }
     </style>
 </head>
@@ -271,48 +207,30 @@
 
 <input type="file" id="csvFileInput" accept=".csv, .txt, .tsv" style="display:none;" onchange="if(window.dataExtractorAgent) window.dataExtractorAgent.handleFileUpload(event)">
 
-<header class="showcase-hero">
-    <div>
-        <div class="hero-kicker">AI Native LabOps</div>
-        <h1 class="hero-title">Ice-Harness OPC</h1>
-        <div class="hero-subtitle">AI 原生实验监控与数据治理平台</div>
-        <p class="hero-desc">通过 NL2Action 驱动多 Agent 协同，实现实验数据监控、异常识别、坏点治理与报告生成。</p>
+<header>
+    <h1>⬡ Ice-Harness OPC</h1>
+    <div style="flex:1; margin: 0 20px; display:flex; gap:8px;">
+        <input type="text" id="nlCommand" placeholder="NL2Action：'调整范围在-50到150度' / '剔除坏点' (回车执行)" style="flex:1;" onkeydown="if(event.key==='Enter') executeNlCommand()">
+        <button class="ai-btn" id="btnNlSubmit" onclick="executeNlCommand()">🧠 AI 执行</button>
     </div>
-    <div class="hero-command">
-        <input type="text" id="nlCommand" placeholder="输入自然语言指令，例如：隐藏异常通道 / jieshushiyanba" style="flex:1;" onkeydown="if(event.key==='Enter') executeNlCommand()">
-        <button class="ai-btn primary-hero" id="btnNlSubmit" onclick="executeNlCommand()">AI 执行</button>
-    </div>
-    <div class="hero-actions">
+    <div class="controls">
+        <button id="themeBtn" class="theme-btn" onclick="window.toggleTheme()" title="切换明暗主题">☀️</button>
+        <input type="password" id="deepseekApiKey" placeholder="DeepSeek API Key" style="width:130px;" onchange="window.saveApiKey(this.value)">
+        <select id="speedSelect" onchange="if(window.monitorAgent) window.monitorAgent.syncSpeed()">
+            <option value="500">1x</option>
+            <option value="100" selected>5x</option>
+            <option value="20">25x</option>
+        </select>
         <button id="btnDemoHeader" class="demo-primary-btn" onclick="window.loadDemoData()">加载示例数据</button>
-        <button id="btnShowcaseDemo" class="primary-hero" onclick="window.runShowcaseDemo()">开始演示</button>
-        <details class="more-actions">
-            <summary><button type="button">更多操作</button></summary>
-            <div class="more-actions-panel">
-                <input type="password" id="deepseekApiKey" placeholder="DeepSeek API Key" onchange="window.saveApiKey(this.value)">
-                <select id="speedSelect" onchange="if(window.monitorAgent) window.monitorAgent.syncSpeed()">
-                    <option value="500">1x</option>
-                    <option value="100" selected>5x</option>
-                    <option value="20">25x</option>
-                </select>
-                <button id="themeBtn" class="theme-btn" onclick="window.toggleTheme()" title="切换明暗主题">☀️</button>
-                <button id="btnUpload" onclick="document.getElementById('csvFileInput').click()" style="border-color: var(--accent-blue); color: var(--accent-blue);">加载本地数据📂</button>
-                <button id="btnStart" class="primary" onclick="handleAction('开始监控', 'CMD_START')" disabled>▶ 开始监控</button>
-                <button id="btnTestPause" onclick="handleAction('暂停/继续试验', 'CMD_PAUSE')" disabled>⏸ 暂停</button>
-                <button id="btnFixFault" class="success" onclick="handleAction('剔除坏点并修复', 'CMD_FIX_ERASE')" style="display:none;">🛠️ 剔除异常</button>
-                <button id="btnClean" onclick="if(window.cleanerAgent) window.cleanerAgent.activate('CLEAN')" style="border-color: var(--accent-green); color: var(--accent-green);">🖱️ 手动框选</button>
-                <button id="btnComplete" onclick="handleAction('试验完成', 'CMD_COMPLETE')" disabled>⏹ 完成</button>
-                <button id="btnAnalyze" class="ai-btn" onclick="if(window.cleanerAgent) window.cleanerAgent.activate('REPORT')" style="display:none;">📊 数据分析</button>
-            </div>
-        </details>
+        <button id="btnUpload" onclick="document.getElementById('csvFileInput').click()" style="border-color: var(--accent-blue); color: var(--accent-blue);">加载本地数据📂</button>
+        <button id="btnStart" class="primary" onclick="handleAction('开始监控', 'CMD_START')" disabled>▶ 开始</button>
+        <button id="btnTestPause" onclick="handleAction('暂停/继续试验', 'CMD_PAUSE')" disabled>⏸ 暂停</button>
+        <button id="btnFixFault" class="success" onclick="handleAction('剔除坏点并修复', 'CMD_FIX_ERASE')" style="display:none;">🛠️ 剔除异常</button>
+        <button id="btnClean" onclick="if(window.cleanerAgent) window.cleanerAgent.activate('CLEAN')" style="border-color: var(--accent-green); color: var(--accent-green);">🖱️ 手动框选</button>
+        <button id="btnComplete" onclick="handleAction('试验完成', 'CMD_COMPLETE')" disabled>⏹ 完成</button>
+        <button id="btnAnalyze" class="ai-btn" onclick="if(window.cleanerAgent) window.cleanerAgent.activate('REPORT')" style="display:none;">📊 数据分析</button>
     </div>
 </header>
-
-<div class="system-badges">
-    <span id="badgeDeepSeek" class="status-badge warn">DeepSeek 未连接</span>
-    <span id="badgeData" class="status-badge warn">示例数据未加载</span>
-    <span id="badgeAgent" class="status-badge busy">Agent 在线</span>
-    <span id="badgeAnomaly" class="status-badge warn">异常 0 个</span>
-</div>
 
 <div class="supervisor-panel">
     <div class="supervisor-actions">
@@ -356,17 +274,9 @@
             </div>
             <span style="color: var(--accent-yellow); font-size: 0.85rem; font-weight: bold;" id="dataStatus">未连接</span>
         </div>
-        <div class="ai-decision-card" id="aiDecisionCard">
-            <div class="decision-title">AI 决策摘要</div>
-            <div class="decision-item"><b>发现异常</b><span id="decisionAnomalyCount">0 个</span></div>
-            <div class="decision-item"><b>异常通道</b><span id="decisionAnomalyChannel">待监控</span></div>
-            <div class="decision-item"><b>建议动作</b><span id="decisionSuggestion">加载数据后启动监控</span></div>
-            <div class="decision-item"><b>当前状态</b><span id="decisionStatus">等待演示</span></div>
-        </div>
         <div class="chart-container" id="chartArea">
             <div id="tempChartContainer"><canvas id="liveChart"></canvas></div>
             <div id="powerChartContainer"><canvas id="powerChart"></canvas></div>
-            <div id="anomalyFloatingCard" class="anomaly-floating-card"></div>
             <div id="selectionOverlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; cursor:crosshair; z-index:10;">
                 <div id="selectionBox" style="position:absolute; top:0; height:100%; background:rgba(88,166,255,0.3); border:1px solid #58a6ff; display:none; pointer-events:none;"></div>
             </div>
@@ -445,66 +355,9 @@
     window.DEMO_CSV_PATH = window.location.pathname.includes('/public-demo/')
         ? '../demo-data/refrigerator_demo.csv'
         : 'demo-data/refrigerator_demo.csv';
-    window.showcaseAnomaly = null;
-    window.showcaseDemoRunning = false;
 
     window.setBtnSafe = function(id, isDisabled) { const el = document.getElementById(id); if (el) el.disabled = isDisabled; };
-    window.saveApiKey = function(val) {
-        if (val) localStorage.setItem('opc_api_key', val);
-        else localStorage.removeItem('opc_api_key');
-        window.updateSystemBadges?.();
-    };
-    window.setBadgeState = function(id, label, state) {
-        const badge = document.getElementById(id);
-        if (!badge) return;
-        badge.textContent = label;
-        badge.className = `status-badge ${state || 'info'}`;
-    };
-    window.updateSystemBadges = function() {
-        const apiKey = document.getElementById('deepseekApiKey')?.value?.trim() || localStorage.getItem('opc_api_key') || '';
-        const hasData = Array.isArray(window.rawData) && window.rawData.length > 0;
-        const anomalyCount = window.showcaseAnomaly ? 1 : (window.monitorAgent?.hasTriggeredAlarm ? 1 : 0);
-        window.setBadgeState('badgeDeepSeek', apiKey ? 'DeepSeek 已连接' : 'DeepSeek 未连接', apiKey ? 'ok' : 'warn');
-        window.setBadgeState('badgeData', hasData ? '示例数据已加载' : '示例数据未加载', hasData ? 'ok' : 'warn');
-        window.setBadgeState('badgeAgent', window.showcaseDemoRunning ? 'Agent 执行中' : 'Agent 在线', window.showcaseDemoRunning ? 'busy' : 'ok');
-        window.setBadgeState('badgeAnomaly', `异常 ${anomalyCount} 个`, anomalyCount ? 'bad' : 'ok');
-    };
-    window.updateDecisionSummary = function({ count = 0, channel = '待监控', suggestion = '加载数据后启动监控', status = '等待演示' } = {}) {
-        const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
-        setText('decisionAnomalyCount', `${count} 个`);
-        setText('decisionAnomalyChannel', channel);
-        setText('decisionSuggestion', suggestion);
-        setText('decisionStatus', status);
-    };
-    window.setShowcaseAnomaly = function(anomaly = null) {
-        window.showcaseAnomaly = anomaly;
-        const card = document.getElementById('anomalyFloatingCard');
-        if (card && anomaly) {
-            card.classList.add('active');
-            card.innerHTML = `<strong>异常 #1</strong><div>通道：${anomaly.channel}</div><div>值：${anomaly.value}°C</div><div>判断：疑似坏点</div>`;
-        } else if (card) {
-            card.classList.remove('active');
-            card.innerHTML = '';
-        }
-        window.updateDecisionSummary(anomaly ? {
-            count: 1,
-            channel: anomaly.channel,
-            suggestion: '剔除坏点并保留处理记录',
-            status: anomaly.status || '等待人工确认'
-        } : {});
-        window.updateSystemBadges?.();
-        window.chartInstance?.update('none');
-        window.renderChannelControls?.();
-    };
-    window.extractAnomalyFromMessage = function(message) {
-        const text = String(message || '');
-        const matched = text.match(/识别到\s*\[?([^\]，,]+)\]?\s*出现.*?\(([-\d.]+)℃\)/);
-        if (!matched) return null;
-        const channel = matched[1].trim();
-        const datasetIndex = (window.dynamicChannels || []).findIndex(ch => ch.name === channel);
-        const index = Math.max(0, (window.chartInstance?.data?.labels?.length || 1) - 1);
-        return { channel, value: Number(matched[2]).toFixed(1), datasetIndex, index, status: '等待人工确认' };
-    };
+    window.saveApiKey = function(val) { if(val) localStorage.setItem('opc_api_key', val); };
     window.formatTokenUsage = function(usage) {
         if (!usage) return 'Token usage: 未返回';
         const prompt = usage.prompt_tokens ?? usage.promptTokens ?? '-';
@@ -572,16 +425,14 @@
             status.innerText = '未连接';
             status.style.color = 'var(--accent-yellow)';
         }
-        window.updateSystemBadges?.();
     };
 
     window.setDemoButtonsLoading = function(isLoading) {
-        ['btnDemoHeader', 'btnShowcaseDemo'].forEach(id => {
+        ['btnDemoHeader'].forEach(id => {
             const btn = document.getElementById(id);
             if (!btn) return;
             btn.disabled = isLoading;
-            if (id === 'btnShowcaseDemo') btn.innerText = isLoading ? '演示准备中...' : '开始演示';
-            else btn.innerText = isLoading ? '加载中...' : '加载示例数据';
+            btn.innerText = isLoading ? '加载中...' : '加载示例数据';
         });
     };
 
@@ -611,57 +462,11 @@
             window.resetDefaultChannelDisplay();
             if (window.monitorAgent?.start) window.monitorAgent.start();
             window.updateOnboardingState();
-            window.logAgent?.('数据提取Agent', '示例数据已载入，时序滚动与多通道监控已就绪。', 'success', 'DEMO_LOAD');
         } catch (error) {
             window.logAgent?.('监理Agent', `示例数据加载失败：${error.message}`, 'error', 'DEMO_LOAD');
             alert(`Demo 加载失败：${error.message}`);
         } finally {
             window.setDemoButtonsLoading(false);
-        }
-    };
-
-    window.injectShowcaseAnomaly = function() {
-        if (!window.chartInstance?.data?.datasets?.length) return null;
-        const preferredIndex = window.dynamicChannels.findIndex(ch => /左侧壁|左侧|侧壁|R蒸进|F蒸|托盘|蒸/i.test(ch.name));
-        const datasetIndex = preferredIndex >= 0 ? preferredIndex : 0;
-        const dataset = window.chartInstance.data.datasets[datasetIndex];
-        const index = Math.max(0, (dataset.data?.length || 1) - 1);
-        const channel = window.dynamicChannels[datasetIndex]?.name || dataset.label || '左侧壁';
-        const value = 3276.7;
-        if (dataset.data && dataset.data.length) dataset.data[index] = value;
-        const anomaly = { channel, value: value.toFixed(1), datasetIndex, index, status: '等待人工确认' };
-        window.setShowcaseAnomaly(anomaly);
-        window.chartInstance.update('none');
-        return anomaly;
-    };
-
-    window.runShowcaseDemo = async function() {
-        if (window.showcaseDemoRunning) return;
-        window.showcaseDemoRunning = true;
-        window.updateSystemBadges?.();
-        window.setDemoButtonsLoading(true);
-        try {
-            if (!window.rawData?.length) await window.loadDemoData();
-            window.setDemoButtonsLoading(true);
-            window.logAgent?.('监理 Agent', '一键演示启动：NL2Action 调度实验监控、清洗同步与报告 Agent。', 'normal', 'SUPERVISOR_ROUTING');
-            window.logAgent?.('实验监控与预警 Agent', '启动异常检测：扫描温度通道的超限值与坏点模式。', 'normal', 'MONITOR_AGENT_CORE');
-            await new Promise(resolve => setTimeout(resolve, 700));
-            const anomaly = window.injectShowcaseAnomaly();
-            if (anomaly) {
-                window.logAgent?.('实验监控与预警 Agent', `[🚨 异常拦截] 识别到 [${anomaly.channel}] 出现超限坏点 (${anomaly.value}℃)！已推送强预警。`, 'error', 'MONITOR_AGENT_CORE');
-                await new Promise(resolve => setTimeout(resolve, 650));
-                window.logAgent?.('监理 Agent', 'NL2Action 决策：建议隐藏异常通道，并保留处理记录供报告追溯。', 'normal', 'SUPERVISOR_ROUTING');
-                await new Promise(resolve => setTimeout(resolve, 650));
-                const hidden = window.applyHideBadChannels();
-                window.setShowcaseAnomaly({ ...anomaly, status: '已处理' });
-                window.logAgent?.('表格清洗与云端同步 Agent', `坏点治理完成：${hidden.length ? hidden.join('、') : anomaly.channel} 已进入隔离视图。`, 'success', 'CLEANER_AGENT_CORE');
-                await new Promise(resolve => setTimeout(resolve, 450));
-                window.logAgent?.('分析报告 Agent', '已生成 AI 决策摘要，可进入 cloud_sheet.html 继续导出报告。', 'success', 'REPORT_GEN');
-            }
-        } finally {
-            window.showcaseDemoRunning = false;
-            window.setDemoButtonsLoading(false);
-            window.updateSystemBadges?.();
         }
     };
 
@@ -1071,7 +876,6 @@
         if(savedKey) document.getElementById('deepseekApiKey').value = savedKey;
         window.setupNativeZoomPan();
         window.updateOnboardingState();
-        window.updateSystemBadges();
         
         async function tryAutoFetch() {
             try {
@@ -1088,113 +892,6 @@
         if ('requestIdleCallback' in window) requestIdleCallback(idleLoad, { timeout: 1800 });
         else setTimeout(idleLoad, 350);
     }
-
-    window.getChannelGroupName = function(name = '') {
-        if (/功率|电流|电压|频率|系统|电机|压缩/i.test(name)) return '系统通道';
-        if (/左|右|门|侧|壁|滑轨|横梁|端子|托盘|蒸|磁|回|排|底|背|结构|位置/i.test(name)) return '结构/位置通道';
-        return '温度通道';
-    };
-
-    window.renderChannelControls = function() {
-        const controlDiv = document.getElementById('channelControls');
-        if (!controlDiv) return;
-        if (!window.dynamicChannels?.length) {
-            controlDiv.innerHTML = '<span style="color:#8b949e; font-size:0.8rem; text-align:center; margin-top:20px;">等待 CSV 载入...</span>';
-            return;
-        }
-        const groups = { '温度通道': [], '结构/位置通道': [], '系统通道': [] };
-        window.dynamicChannels.forEach((ch, idx) => groups[window.getChannelGroupName(ch.name)].push({ ch, idx }));
-        const anomalyChannel = window.showcaseAnomaly?.channel || '';
-        let html = `<div class="channel-quick-actions">
-            <button onclick="window.selectAllChannels()">全选</button>
-            <button onclick="window.showAnomalyOnly()">只看异常</button>
-            <button onclick="window.restoreDefaultChannels()">恢复默认</button>
-        </div>`;
-        Object.entries(groups).forEach(([title, items]) => {
-            if (!items.length && !(title === '系统通道' && window.hasPower)) return;
-            const count = items.length + (title === '系统通道' && window.hasPower ? 1 : 0);
-            html += `<div class="channel-group"><div class="channel-group-title"><span>${title}</span><span>${count}</span></div>`;
-            items.forEach(({ ch, idx }) => {
-                const checked = window.chartInstance?.data?.datasets?.[idx]?.hidden ? '' : 'checked';
-                const isAnomaly = anomalyChannel && ch.name === anomalyChannel;
-                html += `<label class="channel-toggle ${isAnomaly ? 'anomaly-channel' : ''}"><span style="width:12px;height:4px;background:${ch.color};border-radius:2px;"></span><input type="checkbox" ${checked} onchange="window.toggleChannelUI(${idx})">${ch.name}${isAnomaly ? '<span class="channel-badge">异常</span>' : ''}</label>`;
-            });
-            if (title === '系统通道' && window.hasPower) {
-                const checked = window.powerChartInstance?.data?.datasets?.[0]?.hidden ? '' : 'checked';
-                html += `<label class="channel-toggle"><span style="width:12px;height:4px;background:#ff4081;border-radius:2px;"></span><input type="checkbox" ${checked} onchange="window.togglePowerUI()">功率</label>`;
-            }
-            html += '</div>';
-        });
-        controlDiv.innerHTML = html;
-    };
-
-    window.selectAllChannels = function() {
-        window.resetDefaultChannelDisplay();
-        window.logAgent?.('超级个体', '系统指令：[通道全选]', 'normal', 'ISOLATE_CHANNEL');
-    };
-
-    window.showAnomalyOnly = function() {
-        if (!window.showcaseAnomaly) {
-            window.logAgent?.('监理Agent', '当前暂无已识别异常，无法进入只看异常视图。', 'normal', 'MONITOR_AGENT_CORE');
-            return;
-        }
-        window.dynamicChannels.forEach((ch, idx) => {
-            const visible = ch.name === window.showcaseAnomaly.channel;
-            if (window.chartInstance?.data?.datasets?.[idx]) window.chartInstance.data.datasets[idx].hidden = !visible;
-        });
-        if (window.powerChartInstance?.data?.datasets?.[0]) window.powerChartInstance.data.datasets[0].hidden = true;
-        window.chartInstance?.update('none');
-        window.powerChartInstance?.update('none');
-        window.renderChannelControls();
-        window.logAgent?.('超级个体', `系统指令：[只看异常通道 - ${window.showcaseAnomaly.channel}]`, 'normal', 'ISOLATE_CHANNEL');
-    };
-
-    window.restoreDefaultChannels = function() {
-        window.resetDefaultChannelDisplay();
-        window.logAgent?.('超级个体', '系统指令：[恢复默认通道视图]', 'normal', 'ISOLATE_CHANNEL');
-    };
-
-    window.anomalyOverlayPlugin = {
-        id: 'showcaseAnomalyOverlay',
-        afterDatasetsDraw(chart) {
-            const anomaly = window.showcaseAnomaly;
-            if (!anomaly || chart !== window.chartInstance) return;
-            const xScale = chart.scales?.x;
-            const yScale = chart.scales?.y;
-            if (!xScale || !yScale || anomaly.index == null) return;
-            const dataIndex = Math.min(anomaly.index, Math.max(0, chart.data.labels.length - 1));
-            const x = xScale.getPixelForValue(dataIndex);
-            const value = Number(anomaly.value);
-            const y = Number.isFinite(value) ? yScale.getPixelForValue(value) : chart.chartArea.top + 30;
-            const { ctx, chartArea } = chart;
-            ctx.save();
-            ctx.strokeStyle = '#f85149';
-            ctx.fillStyle = '#f85149';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 5]);
-            ctx.beginPath();
-            ctx.moveTo(x, chartArea.top);
-            ctx.lineTo(x, chartArea.bottom);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.beginPath();
-            ctx.arc(x, Math.max(chartArea.top + 8, Math.min(chartArea.bottom - 8, y)), 6, 0, Math.PI * 2);
-            ctx.fill();
-            const label = '异常 #1';
-            ctx.font = '700 12px sans-serif';
-            const labelWidth = ctx.measureText(label).width + 18;
-            const labelX = Math.min(x + 10, chartArea.right - labelWidth);
-            const labelY = chartArea.top + 12;
-            ctx.fillStyle = 'rgba(248,81,73,0.92)';
-            ctx.beginPath();
-            if (typeof ctx.roundRect === 'function') ctx.roundRect(labelX, labelY, labelWidth, 24, 8);
-            else ctx.rect(labelX, labelY, labelWidth, 24);
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.fillText(label, labelX + 9, labelY + 16);
-            ctx.restore();
-        }
-    };
 
     window.rebuildChartsAndUI = function() {
         if (window.monitorAgent && window.monitorAgent.timer) { clearInterval(window.monitorAgent.timer); window.monitorAgent.isRunning = false; }
@@ -1216,16 +913,16 @@
         const autoBtn = document.getElementById('btnAutoScroll');
         if (autoBtn) autoBtn.classList.add('active-mode');
         
-        if (window.Chart && !window._showcaseAnomalyPluginRegistered) {
-            Chart.register(window.anomalyOverlayPlugin);
-            window._showcaseAnomalyPluginRegistered = true;
-        }
         const themeVars = window.getThemeVars();
         const ctx = document.getElementById('liveChart').getContext('2d');
         window.chartInstance = new Chart(ctx, {
             type: 'line',
             data: { labels: [], datasets: window.dynamicChannels.map(ch => ({ label: ch.name, data: [], borderColor: ch.color, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, pointHitRadius: 10, tension: 0.2, spanGaps: false })) },
             options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false }, onHover: (event, active, chart) => window.syncLinkedChartHover(chart, active), scales: { x: { display: !window.hasPower, grid: { color: themeVars.chartGrid }, ticks: { color: themeVars.tickColor, maxRotation:0 } }, y: { grid: { color: themeVars.chartGrid }, ticks: { color: themeVars.tickColor } } }, plugins: { legend: { display: false }, tooltip: window.buildTooltipOptions('℃') } }
+        });
+
+        window.dynamicChannels.forEach((ch, idx) => {
+            controlDiv.innerHTML += `<label class="channel-toggle"><span style="width:12px;height:4px;background:${ch.color};border-radius:2px;"></span><input type="checkbox" checked onchange="window.toggleChannelUI(${idx})">${ch.name}</label>`;
         });
 
         if (window.hasPower) {
@@ -1236,8 +933,8 @@
                 data: { labels: [], datasets: [{ label: '功率 (W)', data: [], borderColor: '#ff4081', backgroundColor: 'rgba(255,64,129,0.15)', borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, pointHitRadius: 10, tension: 0.2, fill: true }] },
                 options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false }, onHover: (event, active, chart) => window.syncLinkedChartHover(chart, active), scales: { x: { grid: { color: themeVars.chartGrid }, ticks: { color: themeVars.tickColor, maxRotation:0 } }, y: { grid: { color: themeVars.chartGrid }, ticks: { color: themeVars.tickColor } } }, plugins: { legend: { display: false }, tooltip: window.buildTooltipOptions('W') } }
             });
+            controlDiv.innerHTML += `<div style="height:1px; background:var(--border); margin: 5px 0;"></div><label class="channel-toggle"><span style="width:12px;height:4px;background:#ff4081;border-radius:2px;"></span><input type="checkbox" checked onchange="window.togglePowerUI()">功率</label>`;
         } else { document.getElementById('powerChartContainer').style.display = 'none'; }
-        window.renderChannelControls();
         window.updateOnboardingState();
     };
 
@@ -2018,44 +1715,15 @@ if (currentIndex >= rawData.length) {
         if (modal) modal.classList.remove('active');
     };
 
-    window.escapeHtml = function(value) {
-        return String(value ?? '').replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]));
-    };
-
-    window.classifyEventCard = function(agent, message, type = 'normal') {
-        const text = `${agent} ${message}`;
-        if (type === 'error' || /异常拦截|严重|超限坏点|调用失败/.test(text)) return { cls: 'severe', label: '严重异常', title: '异常识别触发' };
-        if (/预警|等待|确认|建议/.test(text)) return { cls: 'warn', label: '预警', title: '治理策略待确认' };
-        if (/NL2Action|DeepSeek|调度|AI|体验API|通讯完成/.test(text)) return { cls: 'ai', label: 'AI 调度', title: 'Agent 协同决策' };
-        if (type === 'success' || /完成|已生成|已载入|已进入|已连接|已剔除/.test(text)) return { cls: 'done', label: '处理完成', title: '执行结果回传' };
-        if (/系统指令|加载|启动|撤回|通道/.test(text)) return { cls: 'info', label: '系统指令', title: '控制指令执行' };
-        return { cls: 'info', label: '系统信息', title: '运行事件' };
-    };
-
-    window.handleShowcaseLogEvent = function(agent, message, type) {
-        const anomaly = window.extractAnomalyFromMessage?.(message);
-        if (anomaly) window.setShowcaseAnomaly(anomaly);
-        if (/隐藏当前异常通道|坏点治理完成|隔离视图/.test(String(message || '')) && window.showcaseAnomaly) {
-            window.setShowcaseAnomaly({ ...window.showcaseAnomaly, status: '已处理' });
-        }
-        window.updateSystemBadges?.();
-    };
-
     window.logAgent = function(agent, message, type = 'normal', codeRef = null) {
         const consoleDiv = document.getElementById('console');
-        const div = document.createElement('div');
+        const div = document.createElement('div'); div.className = 'log-entry';
         let agentClass = `agent-${agent}`.replace(/ /g, '');
         const ref = codeRef || window.inferCodeRef(agent, message);
-        const event = window.classifyEventCard(agent, message, type);
         window.supervisorAgent?.recordLog(agent, message, type, ref);
-        div.className = `event-card ${event.cls}`;
-        div.innerHTML = `<div class="event-top"><span class="event-type">${event.label}</span><span class="event-time">${new Date().toLocaleTimeString()}</span></div>
-            <div class="event-title">${event.title}</div>
-            <div class="${agentClass} event-agent agent-name" data-code-ref="${ref}" onclick="window.openCodeRef(this)" title="点击查看本步骤触发代码">${window.escapeHtml(agent)}</div>
-            <div class="event-desc ${type === 'error' ? 'log-error' : type === 'success' ? 'log-success' : ''}">${window.escapeHtml(message)}</div>
-            <button class="event-action" data-code-ref="${ref}" onclick="window.openCodeRef(this)">查看触发代码</button>`;
+        div.innerHTML = `<span style="color:#8b949e;margin-right:8px">[${new Date().toLocaleTimeString()}]</span> <span class="${agentClass} agent-name" data-code-ref="${ref}" onclick="window.openCodeRef(this)" title="点击查看本步骤触发代码">[${agent}]</span> <span class="${type==='error'?'log-error':''}">${message}</span>`;
+        if(type==='success') div.innerHTML = div.innerHTML.replace('log-error', 'log-success');
         consoleDiv.appendChild(div); consoleDiv.scrollTop = consoleDiv.scrollHeight;
-        window.handleShowcaseLogEvent(agent, message, type);
     };
 
     document.addEventListener('keydown', function(e) {

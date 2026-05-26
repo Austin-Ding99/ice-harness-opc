@@ -12,7 +12,7 @@
         '实验监控与预警Agent',
         '数据提取与通道选择Agent',
         '表格清洗与云端同步Agent',
-        '分析报告Agent'
+        '分析与报告Agent'
     ];
     const BLOCKED_AGENTS = ['Demo 引导Agent'];
 
@@ -54,7 +54,7 @@
         if (name.includes('监控') || name.includes('预警')) return '实验监控与预警Agent';
         if (name.includes('提取') || name.includes('通道')) return '数据提取与通道选择Agent';
         if (name.includes('清洗') || name.includes('同步')) return '表格清洗与云端同步Agent';
-        if (name.includes('分析') || name.includes('报告')) return '分析报告Agent';
+        if (name.includes('分析') || name.includes('报告')) return '分析与报告Agent';
         if (name.includes('监理')) return '监理Agent';
         return name;
     }
@@ -359,11 +359,11 @@
             );
             grid.innerHTML = order.map(agent => {
                 const h = this.health[agent];
-                const statusClass = h.status === '异常' ? 'bad' : (h.status === '运行中' ? 'busy' : (h.status === '待命' ? 'warn' : 'ok'));
+                const statusClass = h.status === '异常' ? 'bad' : (h.status === '运行中' ? 'busy' : 'ok');
                 const seen = h.lastSeen ? formatTime(h.lastSeen) : '未启动';
                 return `<div class="health-item ${statusClass}">
                     <div class="health-top"><span>${escapeHtml(agent)}</span><b>${escapeHtml(h.status)}</b></div>
-                    <div class="health-detail" title="${escapeHtml(h.detail || '')}">输出结果：${escapeHtml(h.detail || '等待任务')}</div>
+                    <div class="health-detail" title="${escapeHtml(h.detail || '')}">${escapeHtml(h.detail || '等待任务')}</div>
                     <div class="health-foot">最近动作 ${seen} ｜异常计数 ${h.failures || 0}</div>
                     <button class="health-log-btn" data-agent="${escapeHtml(agent)}" onclick="window.supervisorAgent?.openAgentLogModal(this.dataset.agent)">查看日志</button>
                 </div>`;
