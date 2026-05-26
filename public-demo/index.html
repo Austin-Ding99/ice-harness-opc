@@ -361,7 +361,7 @@
         const input = document.getElementById('deepseekApiKey');
         const apiKey = input?.value?.trim() || localStorage.getItem('opc_api_key') || '';
         if (!apiKey) {
-            alert('请先在右上角 DeepSeek API Key 输入框填入 key。出于安全原因，公网源码不会内置私有 key。');
+            alert('请先在右上角 DeepSeek API Key 输入框填入 key。出于安全原因，公网源码不会内置私有 key。\n\n【重要】可在演示文件PPT中找到该体验key。');
             input?.focus();
             return;
         }
