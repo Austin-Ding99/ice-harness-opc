@@ -192,6 +192,8 @@
         .demo-chip { font-family:'Consolas','Monaco',monospace; font-size:0.72rem; color:var(--accent-blue); border-color:rgba(88,166,255,0.36); background:var(--panel-strong); padding:4px 8px; white-space:nowrap; }
         .demo-api-title { color:var(--text-muted); font-size:0.74rem; white-space:nowrap; }
         .demo-api-btn { color:var(--accent-green); border-color:rgba(63,185,80,0.42); background:var(--panel-strong); padding:4px 9px; white-space:nowrap; }
+        .manual-download-btn { margin-left:auto; color:var(--accent-blue); border:1px solid rgba(88,166,255,0.42); background:var(--panel-strong); padding:4px 10px; white-space:nowrap; text-decoration:none; border-radius:6px; font-size:0.74rem; font-weight:700; }
+        .manual-download-btn:hover { background:var(--button-hover); border-color:var(--accent-blue); }
         .api-key-hint { display:none; position:fixed; top:82px; left:50%; transform:translateX(-50%); z-index:2600; width:min(560px, calc(100vw - 28px)); background:var(--tooltip-bg); color:var(--text-main); border:1px solid var(--accent-green); border-radius:12px; box-shadow:0 14px 42px var(--toolbar-shadow); padding:13px 15px; backdrop-filter:blur(8px); }
         .api-key-hint.active { display:block; }
         .api-key-hint strong { display:block; color:var(--accent-yellow); font-size:0.96rem; margin-top:7px; }
@@ -232,6 +234,19 @@
     </div>
 </header>
 
+<div class="demo-prompt-strip" aria-label="示例 Prompt">
+    <span class="demo-api-title">体验API（DeepSeek）：</span>
+    <button id="btnApiTest" class="demo-api-btn" onclick="window.testDeepSeekApi()">点击调用API</button>
+    <span class="demo-prompt-title">示例 Prompt：</span>
+    <button class="demo-chip" onclick="window.runExamplePrompt('剔除150℃以上数据')">剔除150℃以上数据</button>
+    <button class="demo-chip" onclick="window.runExamplePrompt('隐藏异常通道')">隐藏异常通道</button>
+    <button class="demo-chip" onclick="window.runExamplePrompt('只显示功率通道')">只显示功率通道</button>
+    <button class="demo-chip" onclick="window.runExamplePrompt('turn off the broken tunnel')">turn off the broken tunnel</button>
+    <button class="demo-chip" onclick="window.runExamplePrompt('jieshushiyanba')">jieshushiyanba</button>
+    <span class="demo-prompt-note">（当然可以按照自己的自然语言输入）</span>
+    <a class="manual-download-btn" href="ice-harness-public-demo-operation-manual.pdf" download>操作手册下载</a>
+</div>
+
 <div class="supervisor-panel">
     <div class="supervisor-actions">
         <button id="btnRestoreCheckpoint" onclick="window.supervisorAgent?.restoreCheckpoint()" disabled>恢复断点</button>
@@ -243,18 +258,6 @@
         <div class="task-ledger-title"><span>触发事件台账</span><span>失败自动重试</span></div>
         <div id="taskLedgerList"></div>
     </div>
-</div>
-
-<div class="demo-prompt-strip" aria-label="示例 Prompt">
-    <span class="demo-api-title">体验API（DeepSeek）：</span>
-    <button id="btnApiTest" class="demo-api-btn" onclick="window.testDeepSeekApi()">点击调用API</button>
-    <span class="demo-prompt-title">示例 Prompt：</span>
-    <button class="demo-chip" onclick="window.runExamplePrompt('剔除150℃以上数据')">剔除150℃以上数据</button>
-    <button class="demo-chip" onclick="window.runExamplePrompt('隐藏异常通道')">隐藏异常通道</button>
-    <button class="demo-chip" onclick="window.runExamplePrompt('只显示功率通道')">只显示功率通道</button>
-    <button class="demo-chip" onclick="window.runExamplePrompt('turn off the broken tunnel')">turn off the broken tunnel</button>
-    <button class="demo-chip" onclick="window.runExamplePrompt('jieshushiyanba')">jieshushiyanba</button>
-    <span class="demo-prompt-note">（当然可以按照自己的自然语言输入）</span>
 </div>
 
 <div class="main-content">
@@ -458,9 +461,12 @@
             const res = await fetch(`${window.DEMO_CSV_PATH}?t=${Date.now()}`);
             if (!res.ok) throw new Error(`Demo CSV 加载失败 HTTP ${res.status}`);
             const text = await res.text();
+            if (window.monitorAgent?.timer) clearInterval(window.monitorAgent.timer);
+            if (window.monitorAgent) window.monitorAgent.isRunning = false;
             await window.dataExtractorAgent.processCSVText(text, 'refrigerator_demo.csv');
             window.resetDefaultChannelDisplay();
-            if (window.monitorAgent?.start) window.monitorAgent.start();
+            ['btnTestPause', 'btnComplete'].forEach(id => window.setBtnSafe?.(id, true));
+            window.logAgent?.('监理Agent', '示例数据已完成表头识别，等待点击「开始」或输入自然语言开始指令后滚动。', 'success', 'DEMO_LOAD');
             window.updateOnboardingState();
         } catch (error) {
             window.logAgent?.('监理Agent', `示例数据加载失败：${error.message}`, 'error', 'DEMO_LOAD');
@@ -548,6 +554,11 @@
     window.tryExecuteLocalDemoCommand = function(userCmd) {
         const text = String(userCmd || '').trim().toLowerCase();
         if (!text || !window.rawData?.length) return false;
+        if (/(^|\s)(start|begin|run)(\s|$)/.test(text) || /开始|启动|运行|开机|开始试验|开始实验/.test(userCmd)) {
+            window.logAgent('超级个体', '系统指令：[开始监控]', 'normal', 'CMD_START');
+            window.monitorAgent?.start();
+            return true;
+        }
         if ((/cut|remove|delete|erase/.test(text) && /above|over|greater|higher|>/.test(text) && /150/.test(text)) || (/剔除|清除|删除|擦除/.test(userCmd) && /150/.test(userCmd) && /以上|大于|超过|高于/.test(userCmd))) {
             window.runFixEraseWorkflow({ channels: ['ALL'], operator: 'gt', value: 150 }, userCmd);
             return true;

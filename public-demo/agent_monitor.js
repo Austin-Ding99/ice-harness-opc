@@ -202,6 +202,7 @@ window.monitorAgent = {
         if (window.currentIndex >= window.rawData.length) {
             this.complete(true);
         } else if (window.currentIndex % 25 === 0) {
+            if (window.logAgent) window.logAgent('实验监控与预警Agent', `持续巡检写入中：已滚动 ${window.currentIndex}/${window.rawData.length} 行，最新时间 ${timeLabels.axisLabel}。`, 'normal', 'MONITOR_AGENT_CORE');
             window.supervisorAgent?.checkpoint('监控滚动自动快照');
         }
     }
