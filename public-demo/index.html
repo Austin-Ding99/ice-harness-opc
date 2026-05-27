@@ -308,7 +308,7 @@
 
 <div id="apiKeyHint" class="api-key-hint" role="dialog" aria-live="polite">
     <p>请先在右上角 DeepSeek API Key 输入框填入 key。出于安全原因，公网源码不会内置私有 key。</p>
-    <strong>可在演示文件PPT中找到该体验key</strong>
+    <strong>可在右上角的操作手册文档中找到该体验key</strong>
     <button onclick="window.closeApiKeyHint()">知道了，去填写</button>
 </div>
 
@@ -1355,7 +1355,7 @@
             document.getElementById('nlCommand').value = '';
             return;
         }
-        if (!apiKey) { alert("请先在右上角输入或缓存 DeepSeek API Key；示例 Prompt 可在加载 Demo 后无 Key 运行。"); return; }
+        if (!apiKey) { alert("请先在右上角输入或缓存 DeepSeek API Key；示例 Prompt 可在加载 Demo 后无 Key 运行。可在右上角的操作手册文档中找到该体验key"); return; }
 
         const btn = document.getElementById('btnNlSubmit'); btn.innerText = "⏳ 解析..."; btn.disabled = true;
         window.logAgent('超级个体', `NL2Action 指令：[${userCmd}]`, 'normal', 'USER_NL_INPUT');
